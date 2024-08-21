@@ -1,41 +1,336 @@
 #include <Wire.h>
+#define addrR 0x56
+#define addrW 0xAD
+#define zero  0x00
+byte startSession=0x52;
 
 void setup() {
   Wire.begin();
   Serial.begin(9600);
-  while (!Serial); // Wait for Serial Monitor to open
+  while (!Serial)
+    ;  // Wait for Serial Monitor to open
   Serial.println("I2C Scanner");
 }
 
+void nopuri();
+
 void loop() {
-  byte error, address;
-  int nDevices;
+  byte error;
 
-  Serial.println("Scanning...");
+  Serial.println("=Bituiesc...=");
 
-  nDevices = 0;
-  for (address = 1; address < 127; address++) {
-    Wire.beginTransmission(address);
-    error = Wire.endTransmission();
+  Wire.beginTransmission(addrR);
+  Wire.write(startSession);
 
-    if (error == 0) {
-      Serial.print("I2C device found at address 0x");
-      if (address < 16)
-        Serial.print("0");
-      Serial.print(address, HEX);
-      Serial.println(" !");
-      nDevices++;
-    } else if (error == 4) {
-      Serial.print("Unknown error at address 0x");
-      if (address < 16)
-        Serial.print("0");
-      Serial.println(address, HEX);
-    }
-  }
-  if (nDevices == 0)
-    Serial.println("No I2C devices found\n");
+  Wire.write(0x02);
+  Wire.write(zero);
+  Wire.write(0xB0);
+  Wire.write(zero);
+  Wire.write(zero);
+  Wire.write(0x02);
+  Wire.write(0x6B);
+  Wire.write(0x7E);
+  
+  //Wire.write(0xE0);
+  //Wire.write(0xB4);
+
+  
+  error = Wire.endTransmission();
+  if(error==0)
+    Serial.println("Succes");
   else
-    Serial.println("done\n");
+    Serial.println(error);
 
-  delay(5000); // Wait 5 seconds for the next scan
+  Wire.beginTransmission(addrW);
+  nopuri();
+  Serial.println(Wire.available());
+  error = Wire.endTransmission();
+  if(error==0)
+    Serial.println("Succes");
+  else
+    Serial.println("error");
+
+  
+  Serial.println("^");
+  Serial.println("|Am terminat de bituit");
+  delay(1000);  // Wait 5 seconds for the next scan
+}
+
+void nopuri()
+{
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+  asm volatile ("nop");  // Insert NOP instruction here
+
 }
