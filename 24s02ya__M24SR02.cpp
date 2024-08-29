@@ -1,5 +1,5 @@
 #include "24s02ya__M24SR02.h"
-
+void(* resetFunc) (void) = 0;
 void nopuri()
 {
   asm volatile ("nop");  // Insert NOP instruction here
@@ -281,10 +281,15 @@ void nopuri()
 nfcGadget::nfcGadget()
 {
   if(!this->deviceConnected())
-    throw "eroare";
+    resetFunc();
 }
 
-void nfcGadget::deviceConnected()
+bool nfcGadget::deviceConnected()
 {
-  
+  Wire.beginTransmission(0x2D); // Start I2C transmission to a device with given address
+  if(!Wire.endTransmission())
+    Wire.beginTransmission(0x56);
+      ifif(!Wire.endTransmission())
+        return true;
+  return false;
 }

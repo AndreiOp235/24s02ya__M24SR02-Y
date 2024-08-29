@@ -8,3 +8,4 @@ class nfcGadget
   nfcGadget();
   static bool deviceConnected();
 };
+
