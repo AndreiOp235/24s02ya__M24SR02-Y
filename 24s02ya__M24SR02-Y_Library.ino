@@ -7,41 +7,49 @@ void setup() {
   while (!Serial)
     ;  // Wait for Serial Monitor to open
   Serial.println("I2C Scanner");
-  nfcGadget nfc;
 }
 
+byte v;
+
 void loop() {
-  byte error, address;
-  int nDevices = 0;
+  nfcGadget nfc;
+  if(nfc.deviceConnected())
+    Serial.println("reset");
 
-  Serial.println("Scanning...");
+  byte frame[]= {0x02, 0x00, 0xA4, 0x04, 0x00, 0x07, 0xD2, 0x76, 0x00, 0x00, 0x85, 0x01, 0x01,  0x35, 0xC0};
+  byte raspuns[20];
+  Wire.beginTransmission(0x56);
+  Wire.write(0x52);
 
-  // Scan all possible addresses from 1 to 127
-  for (address = 1; address < 128; address++) {
-    Wire.beginTransmission(address); // Start I2C transmission to a device with given address
-    error = Wire.endTransmission(); // End the I2C transmission and capture the return value
-
-    if (error == 0) {
-      Serial.print("I2C device found at address 0x");
-      if (address < 16) {
-        Serial.print("0"); // Add a leading zero for single-digit addresses
-      }
-      Serial.println(address, HEX); // Print the address in hexadecimal
-      nDevices++;
-    } else if (error == 4) {
-      Serial.print("Unknown error at address 0x");
-      if (address < 16) {
-        Serial.print("0");
-      }
-      Serial.println(address, HEX);
-    }
+  for(int i=0; i<15;i++)
+  {
+    v = (frame[i] & 0xff);
+    delay(5);
+    Wire.write(byte(v & 0xff));
+    delay(1);
   }
+  //receiveResponse(2 + 3);
 
-  if (nDevices == 0) {
-    Serial.println("No I2C devices found\n");
-  } else {
-    Serial.println("done\n");
-  }
+  Wire.endTransmission(); // End transmission to send data
+
+    int index = 0;
+    boolean loop = false;
+
+    do {
+        loop = false;
+        Wire.requestFrom(0x56, 5);
+            delay(1);
+
+        while (Wire.available() && index < 5) {
+            raspuns[index] = (Wire.read() & 0xff);
+
+                delay(1);
+            index++;
+        }
+    } while (loop);
+
+  Serial.print(index);
+
 
   delay(5000); // Wait 5 seconds before scanning again
 }
