@@ -20,21 +20,9 @@ void setup() {
   Serial.println("Open ");
 
   nfc.selectNFCapp();
-
+  nfc.selectFile(CCfile);
   
-
-  /*  
-  Serial.println("P3");
-
-
-  memcpy(nfc._data, adate, 10);
-  for (int i = 0; i < 10; i++)
-    Serial.println(nfc._data[i] & 0xFF, HEX);
-
-
-  nfc.sendCommand(8);
-  nfc.receiveResponse(6);
-
+  /*
   Serial.println("Time to read ST file length");
 
   memcpy(nfc._data, adate1, 8);
