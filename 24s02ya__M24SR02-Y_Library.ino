@@ -11,6 +11,7 @@ void setup() {
   Serial.begin(9600);
   while (!Serial)
     ;  // Wait for Serial Monitor to open
+  Serial.println("");
   Serial.println("interfata NFC");
 
   nfc._verbose = true;
@@ -20,13 +21,9 @@ void setup() {
 
   nfc.selectNFCapp();
 
-
-  
-  for (int i = 0; i < 16; i++)
-    Serial.println(nfc._data[i] & 0xFF, HEX);
   
 
-  
+  /*  
   Serial.println("P3");
 
 
@@ -57,6 +54,7 @@ void setup() {
 
   nfc.sendCommand(6);
   nfc.receiveResponse(25);
+  */
 }
 
 
