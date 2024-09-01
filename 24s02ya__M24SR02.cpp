@@ -7,8 +7,10 @@ void(* resetFunc) (void) = 0;
 
 nfcGadget::nfcGadget()
 {
+  #ifdef RESET
   if(!this->deviceConnected())
     resetFunc();
+  #endif
 }
 
 nfcGadget::~nfcGadget() {
