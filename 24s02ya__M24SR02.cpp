@@ -283,7 +283,6 @@ nfcGadget::nfcGadget()
 {
   if(!this->deviceConnected())
     resetFunc();
-
 }
 
 bool nfcGadget::deviceConnected()
