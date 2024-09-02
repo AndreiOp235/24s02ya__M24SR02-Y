@@ -3,9 +3,9 @@
 #include <crc16.h>
 #include "nopuri.h"
 
-char asel[] = { 0x02, 0x00, 0xA4, 0x04, 0x00, 0x07, 0xD2, 0x76, 0x00, 0x00, 0x85, 0x01, 0x01, 0x00, 0x35, 0xC0 }; //select app
-char adate[] = { 0x03, 0x00, 0xA4, 0x00, 0x0C, 0x02, 0xE1, 0x01, 0xD2, 0xAF };  //select file
-char adate1[] = { 0x02, 0x00, 0xB0, 0x00, 0x00, 0x02, 0x6B, 0x7D }; //read CC length
+char asel[] = { 0x02, 0x00, 0xA4, 0x04, 0x00, 0x07, 0xD2, 0x76, 0x00, 0x00, 0x85, 0x01, 0x01, 0x00, 0x35, 0xC0 };  //select app
+char adate[] = { 0x03, 0x00, 0xA4, 0x00, 0x0C, 0x02, 0xE1, 0x01, 0xD2, 0xAF };                                     //select file
+char adate1[] = { 0x02, 0x00, 0xB0, 0x00, 0x00, 0x02, 0x6B, 0x7D };                                                //read CC length
 char adate2[] = { 0x03, 0x00, 0xB0, 0x00, 0x00, 0x17, 0xA5, 0xA2 };
 
 void nfcGadget::selectNFCapp() {
@@ -39,42 +39,38 @@ bool nfcGadget::interpretAnswer(int expectedLength) {
     }
   }
 
-  if(Sw1==0x90)
+  if (Sw1 == 0x90)
     return true;
-  else 
+  else
     return false;
-
-
 }
 
-void nfcGadget::selectFile(int opt)
-{
-  _opt=opt;
-  switch(opt)
-  {
+void nfcGadget::selectFile(int opt) {
+  _opt = opt;
+  switch (opt) {
     case 1:
-    {
-      adate[6]=0x00;
-      adate[7]=0x01;
-    }
-    break;
+      {
+        adate[6] = 0x00;
+        adate[7] = 0x01;
+      }
+      break;
 
     case 2:
-    {
-      adate[6]=0xE1;
-      adate[7]=0x01;
-    }
-    break;
+      {
+        adate[6] = 0xE1;
+        adate[7] = 0x01;
+      }
+      break;
 
     case 3:
-    {
-      adate[6]=0xE1;
-      adate[7]=0x03;
-    }
-    break;
+      {
+        adate[6] = 0xE1;
+        adate[7] = 0x03;
+      }
+      break;
     default:
-    Serial.println("UNKNOWN file !!!");
-    break;
+      Serial.println("UNKNOWN file !!!");
+      break;
   }
 
   memcpy(_data, adate, 8);
@@ -83,41 +79,38 @@ void nfcGadget::selectFile(int opt)
   interpretAnswer(5);
 }
 
-int nfcGadget::readFileLength()
-{
-  if(_opt==1)
-    adate1[0]=0x02;
-  else if(_opt==3)
-    adate1[0]=0x03;
+int nfcGadget::readFileLength() {
+  if (_opt == 1)
+    adate1[0] = 0x02;
+  else if (_opt == 3)
+    adate1[0] = 0x03;
 
   memcpy(_data, adate1, 6);
   sendCommand(6);
   receiveResponse(7);
-  if(interpretAnswer(7))
-  {
-    uint8_t MSB=_response[1]&0xFF;
-    uint8_t LSB=_response[2]&0xFF;
+  if (interpretAnswer(7)) {
+    uint8_t MSB = _response[1] & 0xFF;
+    uint8_t LSB = _response[2] & 0xFF;
 
-    fileLength=((MSB<<2)&0xFF00)+LSB;
+    fileLength = ((MSB << 2) & 0xFF00) + LSB;
     return fileLength;
   }
 }
 
-char* nfcGadget::readFile()
-{
-  if(_opt==1)
-    adate2[0]=0x02;
-  else if(_opt==3)
-    adate2[0]=0x03;
+char* nfcGadget::readFile() {
+  if (_opt == 1)
+    adate2[0] = 0x02;
+  else if (_opt == 3)
+    adate2[0] = 0x03;
 
-  adate2[5]=fileLength; //Le aka number of bytes to read
+  adate2[5] = fileLength;  //Le aka number of bytes to read
 
   memcpy(_data, adate2, 6);
   sendCommand(6);
-  receiveResponse(fileLength+5);
-  interpretAnswer(fileLength+5);
+  receiveResponse(fileLength + 5);
+  interpretAnswer(fileLength + 5);
 
-  
+
 
   return 0;
 }
@@ -145,53 +138,131 @@ bool nfcGadget::deviceConnected() {
   return false;
 }
 
-void nfcGadget::explainFile()
-{
-  switch(_opt)
-  {
+void nfcGadget::explainFile() {
+  switch (_opt) {
     case CCfile:
-    explainCC();
-    break;
+      explainCC();
+      break;
     case Systemfile:
-    explainSystem();
-    break;
+      explainSystem();
+      break;
     case NDEFfile:
-    explainNDEF();
-    break;
+      explainNDEF();
+      break;
     default:
-    Serial.println("opt has been altered !!!");
-    #ifdef RESET
-     if (!this->deviceConnected())
-    resetFunc();
-    #endif
-    break;
+      Serial.println("opt has been altered !!!");
+#ifdef RESET
+      if (!this->deviceConnected())
+        resetFunc();
+#endif
+      break;
   }
 }
 
-void nfcGadget::explainCC()
-{
-  char* pointer=_response+1;
-  Serial.print("Number of bytes in CC file 0x");
-  int temp=(((pointer[0]<<2)&0xff00)+*(++pointer));
-  Serial.print(temp,HEX);
+void nfcGadget::explainCC() {
+  char* pointer = _response + 1;
+  Serial.print(F("Number of bytes in CC file 0x"));
+  int temp = (((pointer[0] << 2) & 0xff00) + *(++pointer));
+  Serial.print(temp, HEX);
   Serial.print(" = ");
-  Serial.println(temp,DEC);
+  Serial.println(temp, DEC);
 
   pointer++;
+  Serial.print(F("Mapping version 0x"));
+  Serial.print(*pointer, HEX);
+  Serial.print(" = V");
+  switch (*pointer&0xFF) {
+    case 0x10:
+      Serial.println("1.0");
+      break;
+    case 0x20:
+      Serial.println("2.0");
+      break;
+    default:
+      Serial.println(" UNKNOWN");
+      break;
+  }
 
-  Serial.print("Mapping version ")
-  Serial.print(*pointer,HEX);
+  pointer++;
+  Serial.print(F("Maximum number of bytes that can be read 0x"));
+  temp = (((pointer[0] << 2) & 0xff00) + (*(++pointer)) & 0xff);
+  Serial.print(temp, HEX);
+  Serial.print(" = ");
+  Serial.println(temp, DEC);
 
+  pointer++;
+  Serial.print(F("Maximum number of bytes that can be written 0x"));
+  temp = (((pointer[0] << 2) & 0xff00) + (*(++pointer)) & 0xff);
+  Serial.print(temp, HEX);
+  Serial.print(" = ");
+  Serial.println(temp, DEC);
+
+  Serial.println(F("NDEF file control TLV"));
+  pointer++;
+  Serial.print(F("T field 0x"));
+  Serial.println(*pointer, HEX);
+
+  pointer++;
+  Serial.print(F("L field 0x"));
+  Serial.println(*pointer, HEX);
+
+  pointer++;
+  Serial.print(F("FileID 0x"));
+  temp = (((pointer[0] << 2) & 0xff00) + (*(++pointer)) & 0xff);
+  Serial.println(temp, HEX);
+
+  pointer++;
+  Serial.print(F("Maximum NDEF file size in bytes 0x"));
+  temp = (((pointer[0] << 2) & 0xff00) + (*(++pointer)) & 0xff);
+  Serial.print(temp, HEX);
+  Serial.print(" = ");
+  Serial.println(temp, DEC);
+
+  pointer++;
+  Serial.print(F("Read acces 0x"));
+  Serial.print(*pointer&0xFF, HEX);
+
+  switch (*pointer&0xFF) {
+    case 0x00:
+      Serial.println(F(" (Read access without any security)"));
+      break;
+    case 0x80:
+      Serial.println(F(" (Locked )"));
+      break;
+    case 0xFE:
+      Serial.println(F(" (Read not authorized  )"));
+      break;
+    default:
+      Serial.println(F(" (UNKNOWN)"));
+      break;
+  }
+
+  pointer++;
+  Serial.print(F("Write acces 0x"));
+  Serial.print(*pointer&0xFF, HEX);
+
+  switch (*pointer&0xFF) {
+    case 0x00:
+      Serial.println(F(" (Write access without any security)"));
+      break;
+    case 0x80:
+      Serial.println(F(" (Locked )"));
+      break;
+    case 0xFF:
+      Serial.println(F(" (Write not authorized)"));
+      break;
+    default:
+      Serial.println(F(" (UNKNOWN)"));
+      break;
+  }
 }
 
-void nfcGadget::explainSystem()
-{
-  asm volatile ("nop"); 
+void nfcGadget::explainSystem() {
+  asm volatile("nop");
 }
 
-void nfcGadget::explainNDEF()
-{
-  asm volatile ("nop"); 
+void nfcGadget::explainNDEF() {
+  asm volatile("nop");
 }
 
 
