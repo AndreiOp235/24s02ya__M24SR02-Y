@@ -6,7 +6,7 @@
 char asel[] = { 0x02, 0x00, 0xA4, 0x04, 0x00, 0x07, 0xD2, 0x76, 0x00, 0x00, 0x85, 0x01, 0x01, 0x00, 0x35, 0xC0 }; //select app
 char adate[] = { 0x03, 0x00, 0xA4, 0x00, 0x0C, 0x02, 0xE1, 0x01, 0xD2, 0xAF };  //select file
 char adate1[] = { 0x02, 0x00, 0xB0, 0x00, 0x00, 0x02, 0x6B, 0x7D }; //read CC length
-char adate2[] = { 0x03, 0x00, 0xB0, 0x00, 0x00, 0x0F, 0xA5, 0xA2 };
+char adate2[] = { 0x03, 0x00, 0xB0, 0x00, 0x00, 0x17, 0xA5, 0xA2 };
 
 void nfcGadget::selectNFCapp() {
   if (_verbose)
@@ -98,12 +98,29 @@ int nfcGadget::readFileLength()
     uint8_t MSB=_response[1]&0xFF;
     uint8_t LSB=_response[2]&0xFF;
 
-    _responseLength=((MSB<<2)&0xFF00)+LSB;
-    return _responseLength;
+    fileLength=((MSB<<2)&0xFF00)+LSB;
+    return fileLength;
   }
 }
 
+char* nfcGadget::readFile()
+{
+  if(_opt==1)
+    adate2[0]=0x02;
+  else if(_opt==3)
+    adate2[0]=0x03;
 
+  adate2[5]=fileLength; //Le aka number of bytes to read
+
+  memcpy(_data, adate2, 6);
+  sendCommand(6);
+  receiveResponse(fileLength+5);
+  interpretAnswer(fileLength+5);
+
+  
+
+  return 0;
+}
 
 nfcGadget::nfcGadget() {
 #ifdef RESET

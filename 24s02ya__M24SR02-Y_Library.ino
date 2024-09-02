@@ -18,11 +18,13 @@ void setup() {
   nfc._cmds = true;
   nfc._sendGetI2cSession = true;
   Serial.println("Open ");
-  //nfc.selectNFCapp();
+  nfc.selectNFCapp(); //not mandatory
 
   Serial.println("CC file ");
   nfc.selectFile(CCfile);
   Serial.print(nfc.readFileLength());
+
+  nfc.readFile();
 
   /*
   Serial.println("Time to read ST file length");

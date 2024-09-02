@@ -30,6 +30,7 @@ public:
 
   bool interpretAnswer(int expectedLentgh);
   int readFileLength();
+  char* readFile();
 
   boolean _verbose;
   boolean _cmds;
@@ -38,6 +39,7 @@ public:
   boolean _sendGetI2cSession = true;
   uint8_t _err;
 
+  int fileLength=0;
   uint8_t _responseLength = 0x0;
   uint8_t* _response = 0;
 
