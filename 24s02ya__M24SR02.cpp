@@ -171,11 +171,16 @@ void nfcGadget::explainFile()
 void nfcGadget::explainCC()
 {
   char* pointer=_response+1;
-  Serial.print("Number of bytes of CC file 0x");
-  int temp=(((pointer[0]<<2)&0xff)+*(++pointer));
+  Serial.print("Number of bytes in CC file 0x");
+  int temp=(((pointer[0]<<2)&0xff00)+*(++pointer));
   Serial.print(temp,HEX);
   Serial.print(" = ");
-  Serial.print(temp,DEC);
+  Serial.println(temp,DEC);
+
+  pointer++;
+
+  Serial.print("Mapping version ")
+  Serial.print(*pointer,HEX);
 
 }
 
