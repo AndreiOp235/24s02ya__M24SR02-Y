@@ -31,6 +31,10 @@ public:
   bool interpretAnswer(int expectedLentgh);
   int readFileLength();
   char* readFile();
+  void explainFile();
+  void explainCC();
+  void explainSystem();
+  void explainNDEF();
 
   boolean _verbose;
   boolean _cmds;

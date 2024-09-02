@@ -25,6 +25,7 @@ void setup() {
   Serial.print(nfc.readFileLength());
 
   nfc.readFile();
+  nfc.explainFile();
 
   /*
   Serial.println("Time to read ST file length");

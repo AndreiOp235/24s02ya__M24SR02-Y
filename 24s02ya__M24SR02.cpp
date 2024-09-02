@@ -145,6 +145,51 @@ bool nfcGadget::deviceConnected() {
   return false;
 }
 
+void nfcGadget::explainFile()
+{
+  switch(_opt)
+  {
+    case CCfile:
+    explainCC();
+    break;
+    case Systemfile:
+    explainSystem();
+    break;
+    case NDEFfile:
+    explainNDEF();
+    break;
+    default:
+    Serial.println("opt has been altered !!!");
+    #ifdef RESET
+     if (!this->deviceConnected())
+    resetFunc();
+    #endif
+    break;
+  }
+}
+
+void nfcGadget::explainCC()
+{
+  char* pointer=_response+1;
+  Serial.print("Number of bytes of CC file 0x");
+  int temp=(((pointer[0]<<2)&0xff)+*(++pointer));
+  Serial.print(temp,HEX);
+  Serial.print(" = ");
+  Serial.print(temp,DEC);
+
+}
+
+void nfcGadget::explainSystem()
+{
+  asm volatile ("nop"); 
+}
+
+void nfcGadget::explainNDEF()
+{
+  asm volatile ("nop"); 
+}
+
+
 void nfcGadget::sendCommand(unsigned len) {
   uint8_t v;
 
