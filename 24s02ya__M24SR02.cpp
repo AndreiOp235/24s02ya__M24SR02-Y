@@ -5,7 +5,7 @@
 
 char asel[] = { 0x02, 0x00, 0xA4, 0x04, 0x00, 0x07, 0xD2, 0x76, 0x00, 0x00, 0x85, 0x01, 0x01, 0x00, 0x35, 0xC0 }; //select app
 char adate[] = { 0x03, 0x00, 0xA4, 0x00, 0x0C, 0x02, 0xE1, 0x01, 0xD2, 0xAF };  //select file
-char adate1[] = { 0x02, 0x00, 0xB0, 0x00, 0x00, 0x02, 0x6B, 0x7D };
+char adate1[] = { 0x02, 0x00, 0xB0, 0x00, 0x00, 0x02, 0x6B, 0x7D }; //read CC length
 char adate2[] = { 0x03, 0x00, 0xB0, 0x00, 0x00, 0x0F, 0xA5, 0xA2 };
 
 void nfcGadget::selectNFCapp() {
@@ -18,7 +18,7 @@ void nfcGadget::selectNFCapp() {
   interpretAnswer(5);
 }
 
-void nfcGadget::interpretAnswer(int expectedLength) {
+bool nfcGadget::interpretAnswer(int expectedLength) {
   uint8_t Sw1 = _response[expectedLength - 4] & 0xFF;
   uint8_t Sw2 = _response[expectedLength - 3] & 0xFF;
 
@@ -38,10 +38,18 @@ void nfcGadget::interpretAnswer(int expectedLength) {
         break;
     }
   }
+
+  if(Sw1==0x90)
+    return true;
+  else 
+    return false;
+
+
 }
 
 void nfcGadget::selectFile(int opt)
 {
+  _opt=opt;
   switch(opt)
   {
     case 1:
@@ -74,6 +82,28 @@ void nfcGadget::selectFile(int opt)
   receiveResponse(5);
   interpretAnswer(5);
 }
+
+int nfcGadget::readFileLength()
+{
+  if(_opt==1)
+    adate1[0]=0x02;
+  else if(_opt==3)
+    adate1[0]=0x03;
+
+  memcpy(_data, adate1, 6);
+  sendCommand(6);
+  receiveResponse(7);
+  if(interpretAnswer(7))
+  {
+    uint8_t MSB=_response[1]&0xFF;
+    uint8_t LSB=_response[2]&0xFF;
+
+    _responseLength=((MSB<<2)&0xFF00)+LSB;
+    return _responseLength;
+  }
+}
+
+
 
 nfcGadget::nfcGadget() {
 #ifdef RESET

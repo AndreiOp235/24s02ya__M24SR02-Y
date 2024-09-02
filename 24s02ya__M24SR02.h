@@ -28,7 +28,8 @@ public:
   void selectNFCapp();
   void selectFile(int opt);
 
-  void interpretAnswer(int expectedLentgh);
+  bool interpretAnswer(int expectedLentgh);
+  int readFileLength();
 
   boolean _verbose;
   boolean _cmds;
@@ -36,10 +37,12 @@ public:
   uint8_t _deviceaddress = 0x56;
   boolean _sendGetI2cSession = true;
   uint8_t _err;
-  uint8_t _blockNo = 0;
 
   uint8_t _responseLength = 0x0;
   uint8_t* _response = 0;
+
+  private:
+  uint8_t _opt;
 };
 
 #endif
