@@ -258,7 +258,102 @@ void nfcGadget::explainCC() {
 }
 
 void nfcGadget::explainSystem() {
-  asm volatile("nop");
+  char* pointer = _response + 1;
+  Serial.print(F("Length system file 0x"));
+  int temp = (((pointer[0] << 2) & 0xff00) + *(++pointer));
+  Serial.print(temp, HEX);
+  Serial.print(" = ");
+  Serial.println(temp, DEC);
+
+  pointer++;
+  Serial.print(F("I2C protection 0x"));
+  Serial.print(*pointer, HEX);
+  switch (*pointer&0xFF) {
+    case 0x00:
+      Serial.println(F(": the I²C host has the SuperUser right access without sending the I²C password"));
+      break;
+    case 0x01:
+      Serial.println(F(": the I²C host has the SuperUser right access after sending the I²C password"));
+      break;
+    default:
+      Serial.println(F(" UNKNOWN rigths"));
+      break;
+  }
+
+  pointer++;
+  Serial.print(F("I2C Watchdog 0x"));
+  Serial.print(*pointer, HEX);
+
+
+  pointer++;
+  Serial.print(F("Maximum number of bytes that can be read 0x"));
+  temp = (((pointer[0] << 2) & 0xff00) + (*(++pointer)) & 0xff);
+  Serial.print(temp, HEX);
+  Serial.print(" = ");
+  Serial.println(temp, DEC);
+
+  pointer++;
+  Serial.print(F("Maximum number of bytes that can be written 0x"));
+  temp = (((pointer[0] << 2) & 0xff00) + (*(++pointer)) & 0xff);
+  Serial.print(temp, HEX);
+  Serial.print(" = ");
+  Serial.println(temp, DEC);
+
+  
+
+  pointer++;
+  Serial.print(F("L field 0x"));
+  Serial.println(*pointer, HEX);
+
+  pointer++;
+  Serial.print(F("FileID 0x"));
+  temp = (((pointer[0] << 2) & 0xff00) + (*(++pointer)) & 0xff);
+  Serial.println(temp, HEX);
+
+  pointer++;
+  Serial.print(F("Maximum NDEF file size in bytes 0x"));
+  temp = (((pointer[0] << 2) & 0xff00) + (*(++pointer)) & 0xff);
+  Serial.print(temp, HEX);
+  Serial.print(" = ");
+  Serial.println(temp, DEC);
+
+  pointer++;
+  Serial.print(F("Read acces 0x"));
+  Serial.print(*pointer&0xFF, HEX);
+
+  switch (*pointer&0xFF) {
+    case 0x00:
+      Serial.println(F(" (Read access without any security)"));
+      break;
+    case 0x80:
+      Serial.println(F(" (Locked )"));
+      break;
+    case 0xFE:
+      Serial.println(F(" (Read not authorized  )"));
+      break;
+    default:
+      Serial.println(F(" (UNKNOWN)"));
+      break;
+  }
+
+  pointer++;
+  Serial.print(F("Write acces 0x"));
+  Serial.print(*pointer&0xFF, HEX);
+
+  switch (*pointer&0xFF) {
+    case 0x00:
+      Serial.println(F(" (Write access without any security)"));
+      break;
+    case 0x80:
+      Serial.println(F(" (Locked )"));
+      break;
+    case 0xFF:
+      Serial.println(F(" (Write not authorized)"));
+      break;
+    default:
+      Serial.println(F(" (UNKNOWN)"));
+      break;
+  }
 }
 
 void nfcGadget::explainNDEF() {

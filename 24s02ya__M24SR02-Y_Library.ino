@@ -20,13 +20,13 @@ void setup() {
   Serial.println("Open ");
   nfc.selectNFCapp(); //not mandatory
 
-  Serial.println("CC file ");
-  nfc.selectFile(CCfile);
+  Serial.println("System file");
+  nfc.selectFile(Systemfile);
   Serial.print(nfc.readFileLength());
 
   nfc.readFile();
   nfc.explainFile();
-  Serial.println("")
+  Serial.println("");
 
   /*
   Serial.println("Time to read ST file length");
