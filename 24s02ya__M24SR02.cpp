@@ -257,7 +257,8 @@ void nfcGadget::explainCC() {
   }
 }
 
-void nfcGadget::explainSystem() {
+void nfcGadget::explainSystem() 
+{
   char* pointer = _response + 1;
   Serial.print(F("Length system file 0x"));
   int temp = (((pointer[0] << 2) & 0xff00) + *(++pointer));
@@ -284,11 +285,10 @@ void nfcGadget::explainSystem() {
   Serial.print(F("I2C Watchdog 0x"));
   Serial.print(*pointer, HEX);
   if (*pointer == 0) {
-    Serial.println(F(": watchdog disabled"))
-      :
+    Serial.println(F(": watchdog disabled"));
   } else {
-    Serial.print(" - watchdog waits for ms: ")
-      Serial.print((*pointer) & 0x03);
+    Serial.print(" - watchdog waits for ms: ");
+    Serial.print(((*pointer) & 0x03) * 30);
   }
 
   pointer++;
@@ -365,74 +365,47 @@ void nfcGadget::explainSystem() {
   Serial.println(*pointer, HEX);
 
   pointer++;
-  Serial.print(F("Maximum number of bytes that can be read 0x"));
-  temp = (((pointer[0] << 2) & 0xff00) + (*(++pointer)) & 0xff);
-  Serial.print(temp, HEX);
-  Serial.print(" = ");
-  Serial.println(temp, DEC);
+  Serial.print(F("RF enable 0x"));
+  Serial.println(*pointer, HEX);
+  if (*pointer & 0b10000000) {
+    Serial.println(F(" the RF field is on"));
+  } else {
+    Serial.println(F(" the RF field is ooff"));
+  }
+  if (*pointer & 0b00001000) {
+    Serial.println(F(" the RF disable pad is at high state"));
+  } else {
+    Serial.println(F(" the RF disable pad is at low state"));
+  }
+  if (*pointer & 0b00000001) {
+    Serial.println(F(" the M24SR02-Y decodes the command received from the RF interface"));
+  } else {
+    Serial.println(F(" the M24SR02-Y does not decode the command received from the RF interface"));
+  }
 
   pointer++;
-  Serial.print(F("Maximum number of bytes that can be written 0x"));
-  temp = (((pointer[0] << 2) & 0xff00) + (*(++pointer)) & 0xff);
-  Serial.print(temp, HEX);
-  Serial.print(" = ");
-  Serial.println(temp, DEC);
-
-
-
-  pointer++;
-  Serial.print(F("L field 0x"));
+  Serial.print(F("NDEF file number (RFU) 0x"));
   Serial.println(*pointer, HEX);
 
-  pointer++;
-  Serial.print(F("FileID 0x"));
-  temp = (((pointer[0] << 2) & 0xff00) + (*(++pointer)) & 0xff);
-  Serial.println(temp, HEX);
+  Serial.print(F("UID 0x"));
+  for (int i = 0; i < 7; i++) {
+    pointer++;
+    Serial.print((*pointer)& 0xff, HEX);
+    Serial.print(" ");
+  }
+
+  Serial.println("");
 
   pointer++;
-  Serial.print(F("Maximum NDEF file size in bytes 0x"));
+  Serial.print(F("Memory size in bytes 0x"));
   temp = (((pointer[0] << 2) & 0xff00) + (*(++pointer)) & 0xff);
   Serial.print(temp, HEX);
   Serial.print(" = ");
   Serial.println(temp, DEC);
 
   pointer++;
-  Serial.print(F("Read acces 0x"));
-  Serial.print(*pointer & 0xFF, HEX);
-
-  switch (*pointer & 0xFF) {
-    case 0x00:
-      Serial.println(F(" (Read access without any security)"));
-      break;
-    case 0x80:
-      Serial.println(F(" (Locked )"));
-      break;
-    case 0xFE:
-      Serial.println(F(" (Read not authorized  )"));
-      break;
-    default:
-      Serial.println(F(" (UNKNOWN)"));
-      break;
-  }
-
-  pointer++;
-  Serial.print(F("Write acces 0x"));
-  Serial.print(*pointer & 0xFF, HEX);
-
-  switch (*pointer & 0xFF) {
-    case 0x00:
-      Serial.println(F(" (Write access without any security)"));
-      break;
-    case 0x80:
-      Serial.println(F(" (Locked )"));
-      break;
-    case 0xFF:
-      Serial.println(F(" (Write not authorized)"));
-      break;
-    default:
-      Serial.println(F(" (UNKNOWN)"));
-      break;
-  }
+  Serial.print(F("Product code 0x"));
+  Serial.println((*pointer)& 0xff, HEX);
 }
 
 void nfcGadget::explainNDEF() {
