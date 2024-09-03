@@ -31,6 +31,7 @@ public:
   bool interpretAnswer(int expectedLentgh);
   int readFileLength();
   char* readFile();
+  char* longRead();
   void explainFile();
   void explainCC();
   void explainSystem();

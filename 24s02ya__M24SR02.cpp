@@ -102,15 +102,45 @@ char* nfcGadget::readFile() {
     adate2[0] = 0x02;
   else if (_opt == 3)
     adate2[0] = 0x03;
+  else if (_opt == 2)
+    adate2[0] = 0x02;
+  else {
+    Serial.println("_opt has been altered");
+    return 0;
+  }
 
-  adate2[5] = fileLength;  //Le aka number of bytes to read
+  if (fileLength > 25) {
+    longRead();
+  } else {
+    adate2[5] = fileLength;  //Le aka number of bytes to read
 
+    memcpy(_data, adate2, 6);
+    sendCommand(6);
+    receiveResponse(fileLength + 5);
+  }
+  //interpretAnswer(fileLength + 5);
+
+  return 0;
+}
+
+char* nfcGadget::longRead() {
+  uint8_t temp = fileLength;
+  int offset = -20;
+  adate2[5] = 20;
+
+  while (temp > 20) {
+    memcpy(_data, adate2, 6);
+    sendCommand(6);
+    receiveResponse(20 + 5);
+    interpretAnswer(20 + 5);
+    adate2[4] += 20;
+    temp -= 20;
+  }
+  adate2[5] = temp;
   memcpy(_data, adate2, 6);
   sendCommand(6);
-  receiveResponse(fileLength + 5);
-  interpretAnswer(fileLength + 5);
-
-
+  receiveResponse(temp + 5);
+  interpretAnswer(temp + 5);
 
   return 0;
 }
@@ -257,8 +287,7 @@ void nfcGadget::explainCC() {
   }
 }
 
-void nfcGadget::explainSystem() 
-{
+void nfcGadget::explainSystem() {
   char* pointer = _response + 1;
   Serial.print(F("Length system file 0x"));
   int temp = (((pointer[0] << 2) & 0xff00) + *(++pointer));
@@ -390,7 +419,7 @@ void nfcGadget::explainSystem()
   Serial.print(F("UID 0x"));
   for (int i = 0; i < 7; i++) {
     pointer++;
-    Serial.print((*pointer)& 0xff, HEX);
+    Serial.print((*pointer) & 0xff, HEX);
     Serial.print(" ");
   }
 
@@ -405,7 +434,7 @@ void nfcGadget::explainSystem()
 
   pointer++;
   Serial.print(F("Product code 0x"));
-  Serial.println((*pointer)& 0xff, HEX);
+  Serial.println((*pointer) & 0xff, HEX);
 }
 
 void nfcGadget::explainNDEF() {

@@ -20,8 +20,8 @@ void setup() {
   Serial.println("Open ");
   nfc.selectNFCapp(); //not mandatory
 
-  Serial.println("NDEF file");
-  nfc.selectFile(NDEFfile);
+  Serial.println("System file");
+  nfc.selectFile(Systemfile);
   Serial.print(nfc.readFileLength());
 
   nfc.readFile();
