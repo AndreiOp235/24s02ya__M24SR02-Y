@@ -171,7 +171,7 @@ void nfcGadget::explainCC() {
   Serial.print(F("Mapping version 0x"));
   Serial.print(*pointer, HEX);
   Serial.print(" = V");
-  switch (*pointer&0xFF) {
+  switch (*pointer & 0xFF) {
     case 0x10:
       Serial.println("1.0");
       break;
@@ -220,9 +220,9 @@ void nfcGadget::explainCC() {
 
   pointer++;
   Serial.print(F("Read acces 0x"));
-  Serial.print(*pointer&0xFF, HEX);
+  Serial.print(*pointer & 0xFF, HEX);
 
-  switch (*pointer&0xFF) {
+  switch (*pointer & 0xFF) {
     case 0x00:
       Serial.println(F(" (Read access without any security)"));
       break;
@@ -239,9 +239,9 @@ void nfcGadget::explainCC() {
 
   pointer++;
   Serial.print(F("Write acces 0x"));
-  Serial.print(*pointer&0xFF, HEX);
+  Serial.print(*pointer & 0xFF, HEX);
 
-  switch (*pointer&0xFF) {
+  switch (*pointer & 0xFF) {
     case 0x00:
       Serial.println(F(" (Write access without any security)"));
       break;
@@ -268,7 +268,7 @@ void nfcGadget::explainSystem() {
   pointer++;
   Serial.print(F("I2C protection 0x"));
   Serial.print(*pointer, HEX);
-  switch (*pointer&0xFF) {
+  switch (*pointer & 0xFF) {
     case 0x00:
       Serial.println(F(": the I²C host has the SuperUser right access without sending the I²C password"));
       break;
@@ -283,7 +283,86 @@ void nfcGadget::explainSystem() {
   pointer++;
   Serial.print(F("I2C Watchdog 0x"));
   Serial.print(*pointer, HEX);
+  if (*pointer == 0) {
+    Serial.println(F(": watchdog disabled"))
+      :
+  } else {
+    Serial.print(" - watchdog waits for ms: ")
+      Serial.print((*pointer) & 0x03);
+  }
 
+  pointer++;
+  Serial.print(F("GPO Status 0x"));
+  Serial.println(*pointer & 0xFF, HEX);
+  Serial.println(F("Given a RF session:"));
+  uint8_t MSB = (*pointer) & 0b01110000;
+
+  switch (MSB) {
+    case 0b000:  // 0 in binary
+      Serial.println(F("High impedance"));
+      break;
+    case 0b001:  // 1 in binary
+      Serial.println(F("Session opened"));
+      break;
+    case 0b010:  // 2 in binary
+      Serial.println(F("WIP"));
+      break;
+    case 0b011:  // 3 in binary
+      Serial.println(F("MIP"));
+      break;
+    case 0b100:  // 4 in binary
+      Serial.println(F("Interrupt"));
+      break;
+    case 0b101:  // 5 in binary
+      Serial.println(F("State control"));
+      break;
+    case 0b110:  // 6 in binary
+      Serial.println(F("RF busy"));
+      break;
+    case 0b111:  // 7 in binary
+      Serial.println(F("RFU"));
+      break;
+    default:
+      Serial.println(F("Unknown state"));
+      break;
+  }
+
+  Serial.println(F("Given a I2C session:"));
+  uint8_t LSB = (*pointer) & 0b00000111;
+
+  switch (LSB) {
+    case 0b000:  // 0 in binary
+      Serial.println(F("High impedance"));
+      break;
+    case 0b001:  // 1 in binary
+      Serial.println(F("Session opened"));
+      break;
+    case 0b010:  // 2 in binary
+      Serial.println(F("WIP"));
+      break;
+    case 0b011:  // 3 in binary
+      Serial.println(F("MIP"));
+      break;
+    case 0b100:  // 4 in binary
+      Serial.println(F("Interrupt"));
+      break;
+    case 0b101:  // 5 in binary
+      Serial.println(F("State control"));
+      break;
+    case 0b110:  // 6 in binary
+      Serial.println(F("RF busy"));
+      break;
+    case 0b111:  // 7 in binary
+      Serial.println(F("RFU"));
+      break;
+    default:
+      Serial.println(F("Unknown state"));
+      break;
+  }
+
+  pointer++;
+  Serial.print(F("ST reserved 0x"));
+  Serial.println(*pointer, HEX);
 
   pointer++;
   Serial.print(F("Maximum number of bytes that can be read 0x"));
@@ -299,7 +378,7 @@ void nfcGadget::explainSystem() {
   Serial.print(" = ");
   Serial.println(temp, DEC);
 
-  
+
 
   pointer++;
   Serial.print(F("L field 0x"));
@@ -319,9 +398,9 @@ void nfcGadget::explainSystem() {
 
   pointer++;
   Serial.print(F("Read acces 0x"));
-  Serial.print(*pointer&0xFF, HEX);
+  Serial.print(*pointer & 0xFF, HEX);
 
-  switch (*pointer&0xFF) {
+  switch (*pointer & 0xFF) {
     case 0x00:
       Serial.println(F(" (Read access without any security)"));
       break;
@@ -338,9 +417,9 @@ void nfcGadget::explainSystem() {
 
   pointer++;
   Serial.print(F("Write acces 0x"));
-  Serial.print(*pointer&0xFF, HEX);
+  Serial.print(*pointer & 0xFF, HEX);
 
-  switch (*pointer&0xFF) {
+  switch (*pointer & 0xFF) {
     case 0x00:
       Serial.println(F(" (Write access without any security)"));
       break;
