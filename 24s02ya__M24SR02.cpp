@@ -479,73 +479,141 @@ void nfcGadget::explainNDEF() {
   cursor++;
   cursor++;
 
-  if (cursor[0] & 0b10000000) {
-    Serial.println("Message Begin is set !");
+if (cursor[0] & 0b10000000) {
+    Serial.println(F("Message Begin is set !"));
     MB = true;
-  } else {
-    Serial.println("Message Begin is not set !");
-  }
+} else {
+    Serial.println(F("Message Begin is not set !"));
+}
 
-  if (cursor[0] & 0b01000000) {
-    Serial.println("Message End is set !");
+if (cursor[0] & 0b01000000) {
+    Serial.println(F("Message End is set !"));
     ME = true;
-  } else {
-    Serial.println("Message End is not set !");
-  }
+} else {
+    Serial.println(F("Message End is not set !"));
+}
 
-  if (cursor[0] & 0b00100000) {
-    Serial.println("Chunk Flag is set (payload isnt`t complete) !");
-  } else {
-    Serial.println("Chunk Flag is not set !");
-  }
+if (cursor[0] & 0b00100000) {
+    Serial.println(F("Chunk Flag is set (payload isn't complete) !"));
+} else {
+    Serial.println(F("Chunk Flag is not set !"));
+}
 
-  if (cursor[0] & 0b00010000) {
-    Serial.println("Short Record is set !");
-    SR=true;
-  } else {
-    Serial.println("Short Record is not set !");
-  }
+if (cursor[0] & 0b00010000) {
+    Serial.println(F("Short Record is set !"));
+    SR = true;
+} else {
+    Serial.println(F("Short Record is not set !"));
+}
 
-  if (cursor[0] & 0b0001000) {
-    Serial.println("ID Length present is set !");
-    IL=1;
-  } else {
-    Serial.println("ID Length present is not set !");
-  }
+if (cursor[0] & 0b00001000) {  // Fixed typo in the bit mask (it should be 0b00001000)
+    Serial.println(F("ID Length present is set !"));
+    IL = 1;
+} else {
+    Serial.println(F("ID Length present is not set !"));
+}
 
-  Serial.print("Type Name Format is 0x");
-  Serial.print(cursor[0] & 0b0000111,HEX);
+Serial.print(F("Type Name Format is 0x"));
+Serial.print(cursor[0] & 0b00000111, HEX);  // Fixed typo in the bit mask (it should be 0b00000111)
 
-  switch(cursor[0] & 0b0000111)
-  {
+switch (cursor[0] & 0b00000111)  // Fixed typo in the bit mask
+{
     case 0x00:
-            Serial.println("Empty");
-            break;
-        case 0x01:
-            Serial.println(" NFC Forum well-known type [NFC RTD]");
-            break;
-        case 0x02:
-            Serial.println(" Media-type [RFC 2046]");
-            break;
-        case 0x03:
-            Serial.println(" Absolute URI [RFC 3986]");
-            break;
-        case 0x04:
-            Serial.println(" NFC Forum external type [NFC RTD]");
-            break;
-        case 0x05:
-            Serial.println(" Unknown");
-            break;
-        case 0x06:
-            Serial.println(" Unchanged");
-            break;
-        case 0x07:
-            Serial.println(" Reserved");
-            break;
+        Serial.println(F(" Empty"));
+        break;
+    case 0x01:
+        Serial.println(F(" NFC Forum well-known type [NFC RTD]"));
+        break;
+    case 0x02:
+        Serial.println(F(" Media-type [RFC 2046]"));
+        break;
+    case 0x03:
+        Serial.println(F(" Absolute URI [RFC 3986]"));
+        break;
+    case 0x04:
+        Serial.println(F(" NFC Forum external type [NFC RTD]"));
+        break;
+    case 0x05:
+        Serial.println(F(" Unknown"));
+        break;
+    case 0x06:
+        Serial.println(F(" Unchanged"));
+        break;
+    case 0x07:
+        Serial.println(F(" Reserved"));
+        break;
+}
+
+
+  cursor++;
+  Serial.print("Type has a length of 0x");
+  Serial.println(*cursor,HEX);
+
+  uint8_t payloadL=*cursor;
+  int payloadSize=0;
+
+  for(int i=0;i<payloadL;i++)
+  {
+    cursor++;
+    payloadSize=((payloadSize<<2)+(*cursor));
   }
+
+  Serial.print("Payload is ");
+  Serial.print(payloadSize,DEC);
+  Serial.println(" Bytes long");
+  cursor++;
+
+  if(*cursor==0x54)
+  {
+    Serial.println(F(" The payload is a TEXT"));
+
+  }
+
+  else if(*cursor==0x55)
+  {
+    Serial.println(F("The payload is a URI"));
+    handleURI(cursor, payloadSize);
+  }
+  cursor+=payloadSize+1;
+
+  Serial.println("HELP");
+  Serial.println(*cursor,HEX);
 
 }
 
+void nfcGadget::handleURI(uint8_t* cursor,uint8_t lungime)
+{
+  cursor++;
+  if(*cursor==0x01)
+  {
+    Serial.print(F("http://www."));
+  }
+  else if(*cursor==0x02)
+  {
+    Serial.print(F("https://www."));
+  }
+  else if(*cursor==0x03)
+  {
+    Serial.print(F("http://"));
+  }
+  else if (*cursor==0x04)
+  {
+    Serial.print(F("https://"));
+  }
+  else
+  {
+    Serial.print(F(""));
+  }
+  
+
+  for(int i=1;i<lungime;i++)
+  {
+    Serial.print(char(cursor[i]));
+  }
+
+  Serial.println("");
+
+}
 
 void nfcGadget::sendCommand(unsigned len) {
   uint8_t v;

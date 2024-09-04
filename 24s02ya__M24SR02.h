@@ -7,6 +7,8 @@
 #define CMD_GETI2CSESSION 0x26
 #define CMD_KILLRFSESSION 0x52
 
+// https://www.oreilly.com/library/view/beginning-nfc/9781449324094/apa.html
+
 void nopuri();
 
 #define NDEFfile 1
@@ -53,6 +55,7 @@ public:
   void explainCC();
   void explainSystem();
   void explainNDEF();
+  void handleURI(uint8_t* cursor, uint8_t lungime);
 };
 
 #endif
