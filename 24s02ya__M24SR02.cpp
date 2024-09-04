@@ -467,7 +467,12 @@ void nfcGadget::explainSystem() {
 }
 
 void nfcGadget::explainNDEF() {
-  asm volatile("nop");
+  for(int i=0;i<fileLength;i++)
+  {
+    Serial.print(nfc._ndef[i],HEX);
+    Serial.print(" ");
+  }
+  Serial.println();
 }
 
 

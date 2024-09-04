@@ -33,9 +33,7 @@ public:
   char* readFile();
   char* longRead();
   void explainFile();
-  void explainCC();
-  void explainSystem();
-  void explainNDEF();
+
   void longAdd(int temp);
 
   boolean _verbose;
@@ -52,6 +50,9 @@ public:
 
   private:
   uint8_t _opt;
+  void explainCC();
+  void explainSystem();
+  void explainNDEF();
 };
 
 #endif

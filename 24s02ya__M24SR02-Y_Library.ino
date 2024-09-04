@@ -25,8 +25,10 @@ void setup() {
   int j=nfc.readFileLength();
 
   nfc.readFile();
-  //nfc.explainFile();
+  nfc.explainFile();
   Serial.println("");
+
+  
 
 }
 
