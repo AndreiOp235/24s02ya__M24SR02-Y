@@ -117,8 +117,8 @@ char* nfcGadget::readFile() {
     memcpy(_data, adate2, 6);
     sendCommand(6);
     receiveResponse(fileLength + 5);
+    interpretAnswer(fileLength + 5);
   }
-  //interpretAnswer(fileLength + 5);
 
   return 0;
 }
@@ -133,17 +133,46 @@ char* nfcGadget::longRead() {
     sendCommand(6);
     receiveResponse(20 + 5);
     interpretAnswer(20 + 5);
-    adate2[4] += 20;
+    
     temp -= 20;
+    longAdd(20);
+    adate2[4] += 20;
   }
   adate2[5] = temp;
   memcpy(_data, adate2, 6);
   sendCommand(6);
   receiveResponse(temp + 5);
+  longAdd(temp);
   interpretAnswer(temp + 5);
+
 
   return 0;
 }
+
+void nfcGadget::longAdd(int temp) {
+  if (!_ndef) 
+  {
+    _ndef = malloc(temp * sizeof(uint8_t));
+    if (!_ndef) 
+    {
+      Serial.println("Insuficient memory !!!");
+#ifdef RESET
+      if (!this->deviceConnected())
+        resetFunc();
+#endif
+    }
+    else
+    {
+      memcpy(_ndef, (_response + 1) ,temp);
+    }
+  }
+  else
+  {
+    realloc(_ndef,(adate2[4]+temp));
+    memcpy((_ndef+adate2[4]), (_response + 1) ,temp);
+  }
+}
+
 
 nfcGadget::nfcGadget() {
 #ifdef RESET
@@ -449,11 +478,12 @@ void nfcGadget::sendCommand(unsigned len) {
     Wire.beginTransmission(_deviceaddress);  // transmit to device 0x2D
     Wire.write(byte(CMD_GETI2CSESSION));     // GetI2Csession
     _err = Wire.endTransmission();           // stop transmitting
+    /*
     if (_verbose) {
       Serial.print(F("\nGetI2Csession: "));
       Serial.print(_err, HEX);
     } else
-      delay(1);
+      delay(1);*/
   }
 
   if (_cmds)

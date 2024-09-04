@@ -36,6 +36,7 @@ public:
   void explainCC();
   void explainSystem();
   void explainNDEF();
+  void longAdd(int temp);
 
   boolean _verbose;
   boolean _cmds;
@@ -47,6 +48,7 @@ public:
   int fileLength=0;
   uint8_t _responseLength = 0x0;
   uint8_t* _response = 0;
+  uint8_t* _ndef = 0;
 
   private:
   uint8_t _opt;

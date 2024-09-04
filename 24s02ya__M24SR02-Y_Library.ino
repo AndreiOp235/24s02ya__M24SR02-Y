@@ -22,33 +22,12 @@ void setup() {
 
   Serial.println("NDEF file");
   nfc.selectFile(NDEFfile);
-  Serial.print(nfc.readFileLength());
+  int j=nfc.readFileLength();
 
   nfc.readFile();
-  nfc.explainFile();
+  //nfc.explainFile();
   Serial.println("");
 
-  /*
-  Serial.println("Time to read ST file length");
-
-  memcpy(nfc._data, adate1, 8);
-  for (int i = 0; i < 8; i++)
-    Serial.println(nfc._data[i] & 0xFF, HEX);
-
-
-  nfc.sendCommand(6);
-  nfc.receiveResponse(8);
-
-  Serial.println("Time to read ST file");
-
-  memcpy(nfc._data, adate2, 8);
-  for (int i = 0; i < 8; i++)
-    Serial.println(nfc._data[i] & 0xFF, HEX);
-
-
-  nfc.sendCommand(6);
-  nfc.receiveResponse(25);
-  */
 }
 
 
