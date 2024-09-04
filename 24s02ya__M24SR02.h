@@ -56,6 +56,7 @@ public:
   void explainSystem();
   void explainNDEF();
   void handleURI(uint8_t* cursor, uint8_t lungime);
+  void handleTXT(uint8_t* cursor, uint8_t lungime);
 };
 
 #endif
