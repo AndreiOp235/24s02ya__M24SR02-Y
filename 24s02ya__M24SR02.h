@@ -9,7 +9,7 @@
 
 // https://www.oreilly.com/library/view/beginning-nfc/9781449324094/apa.html
 
-void nopuri();
+
 
 #define NDEFfile 1
 #define Systemfile 2

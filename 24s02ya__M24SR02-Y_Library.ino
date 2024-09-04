@@ -20,15 +20,33 @@ void setup() {
   Serial.println("Open ");
   nfc.selectNFCapp(); //not mandatory
 
-  Serial.println("NDEF file");
-  nfc.selectFile(NDEFfile);
+  Serial.println("CC file");
+  nfc.selectFile(CCfile);
   int j=nfc.readFileLength();
 
   nfc.readFile();
   nfc.explainFile();
   Serial.println("");
 
-  
+    nfc.selectNFCapp(); //not mandatory
+
+  Serial.println("ST file");
+  nfc.selectFile(Systemfile);
+  j=nfc.readFileLength();
+
+  nfc.readFile();
+  nfc.explainFile();
+  Serial.println("");
+
+    nfc.selectNFCapp(); //not mandatory
+
+  Serial.println("NDEF file");
+  nfc.selectFile(NDEFfile);
+  j=nfc.readFileLength();
+
+  nfc.readFile();
+  nfc.explainFile();
+  Serial.println("");
 
 }
 
