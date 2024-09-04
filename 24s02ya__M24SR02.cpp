@@ -133,7 +133,7 @@ char* nfcGadget::longRead() {
     sendCommand(6);
     receiveResponse(20 + 5);
     interpretAnswer(20 + 5);
-    
+
     temp -= 20;
     longAdd(20);
     adate2[4] += 20;
@@ -150,26 +150,20 @@ char* nfcGadget::longRead() {
 }
 
 void nfcGadget::longAdd(int temp) {
-  if (!_ndef) 
-  {
+  if (!_ndef) {
     _ndef = malloc(temp * sizeof(uint8_t));
-    if (!_ndef) 
-    {
+    if (!_ndef) {
       Serial.println("Insuficient memory !!!");
 #ifdef RESET
       if (!this->deviceConnected())
         resetFunc();
 #endif
+    } else {
+      memcpy(_ndef, (_response + 1), temp);
     }
-    else
-    {
-      memcpy(_ndef, (_response + 1) ,temp);
-    }
-  }
-  else
-  {
-    realloc(_ndef,(adate2[4]+temp));
-    memcpy((_ndef+adate2[4]), (_response + 1) ,temp);
+  } else {
+    realloc(_ndef, (adate2[4] + temp));
+    memcpy((_ndef + adate2[4]), (_response + 1), temp);
   }
 }
 
@@ -467,12 +461,89 @@ void nfcGadget::explainSystem() {
 }
 
 void nfcGadget::explainNDEF() {
-  for(int i=0;i<fileLength;i++)
-  {
-    Serial.print(nfc._ndef[i],HEX);
+  uint8_t* cursor = _ndef;
+  bool MB=0, ME=0, SR=0, IL=0;
+  for (int i = 0; i < fileLength; i++) {
+    Serial.print(_ndef[i], HEX);
     Serial.print(" ");
   }
   Serial.println();
+
+  uint8_t MSB = (_ndef[0] << 2) & 0x00FF;
+  uint8_t LSB = _ndef[1] & 0xFF;
+  if ((MSB + LSB) == fileLength) {
+    Serial.println(F("Length header is correct !"));
+  } else {
+    asm volatile("nop");  // Insert NOP instruction here
+  }
+  cursor++;
+  cursor++;
+
+  if (cursor[0] & 0b10000000) {
+    Serial.println("Message Begin is set !");
+    MB = true;
+  } else {
+    Serial.println("Message Begin is not set !");
+  }
+
+  if (cursor[0] & 0b01000000) {
+    Serial.println("Message End is set !");
+    ME = true;
+  } else {
+    Serial.println("Message End is not set !");
+  }
+
+  if (cursor[0] & 0b00100000) {
+    Serial.println("Chunk Flag is set (payload isnt`t complete) !");
+  } else {
+    Serial.println("Chunk Flag is not set !");
+  }
+
+  if (cursor[0] & 0b00010000) {
+    Serial.println("Short Record is set !");
+    SR=true;
+  } else {
+    Serial.println("Short Record is not set !");
+  }
+
+  if (cursor[0] & 0b0001000) {
+    Serial.println("ID Length present is set !");
+    IL=1;
+  } else {
+    Serial.println("ID Length present is not set !");
+  }
+
+  Serial.print("Type Name Format is 0x");
+  Serial.print(cursor[0] & 0b0000111,HEX);
+
+  switch(cursor[0] & 0b0000111)
+  {
+    case 0x00:
+            Serial.println("Empty");
+            break;
+        case 0x01:
+            Serial.println(" NFC Forum well-known type [NFC RTD]");
+            break;
+        case 0x02:
+            Serial.println(" Media-type [RFC 2046]");
+            break;
+        case 0x03:
+            Serial.println(" Absolute URI [RFC 3986]");
+            break;
+        case 0x04:
+            Serial.println(" NFC Forum external type [NFC RTD]");
+            break;
+        case 0x05:
+            Serial.println(" Unknown");
+            break;
+        case 0x06:
+            Serial.println(" Unchanged");
+            break;
+        case 0x07:
+            Serial.println(" Reserved");
+            break;
+  }
+
 }
 
 
