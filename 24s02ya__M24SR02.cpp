@@ -92,7 +92,7 @@ int nfcGadget::readFileLength() {
     uint8_t MSB = _response[1] & 0xFF;
     uint8_t LSB = _response[2] & 0xFF;
 
-    fileLength = ((MSB << 2) & 0xFF00) + LSB;
+    fileLength = ((MSB << 8) & 0xFF00) + LSB;
     return fileLength;
   }
 }
@@ -215,7 +215,7 @@ void nfcGadget::explainFile() {
 void nfcGadget::explainCC() {
   char* pointer = _response + 1;
   Serial.print(F("Number of bytes in CC file 0x"));
-  int temp = (((pointer[0] << 2) & 0xff00) + *(++pointer));
+  int temp = (((pointer[0] << 8) & 0xff00) + *(++pointer));
   Serial.print(temp, HEX);
   Serial.print(" = ");
   Serial.println(temp, DEC);
@@ -238,14 +238,14 @@ void nfcGadget::explainCC() {
 
   pointer++;
   Serial.print(F("Maximum number of bytes that can be read 0x"));
-  temp = (((pointer[0] << 2) & 0xff00) + (*(++pointer)) & 0xff);
+  temp = (((pointer[0] << 8) & 0xff00) + (*(++pointer)) & 0xff);
   Serial.print(temp, HEX);
   Serial.print(" = ");
   Serial.println(temp, DEC);
 
   pointer++;
   Serial.print(F("Maximum number of bytes that can be written 0x"));
-  temp = (((pointer[0] << 2) & 0xff00) + (*(++pointer)) & 0xff);
+  temp = (((pointer[0] << 8) & 0xff00) + (*(++pointer)) & 0xff);
   Serial.print(temp, HEX);
   Serial.print(" = ");
   Serial.println(temp, DEC);
@@ -261,12 +261,12 @@ void nfcGadget::explainCC() {
 
   pointer++;
   Serial.print(F("FileID 0x"));
-  temp = (((pointer[0] << 2) & 0xff00) + (*(++pointer)) & 0xff);
+  temp = (((pointer[0] << 8) & 0xff00) + (*(++pointer)) & 0xff);
   Serial.println(temp, HEX);
 
   pointer++;
   Serial.print(F("Maximum NDEF file size in bytes 0x"));
-  temp = (((pointer[0] << 2) & 0xff00) + (*(++pointer)) & 0xff);
+  temp = (((pointer[0] << 8) & 0xff00) + (*(++pointer)) & 0xff);
   Serial.print(temp, HEX);
   Serial.print(" = ");
   Serial.println(temp, DEC);
@@ -313,7 +313,7 @@ void nfcGadget::explainCC() {
 void nfcGadget::explainSystem() {
   char* pointer = _response + 1;
   Serial.print(F("Length system file 0x"));
-  int temp = (((pointer[0] << 2) & 0xff00) + *(++pointer));
+  int temp = (((pointer[0] << 8) & 0xff00) + *(++pointer));
   Serial.print(temp, HEX);
   Serial.print(" = ");
   Serial.println(temp, DEC);
@@ -450,7 +450,7 @@ void nfcGadget::explainSystem() {
 
   pointer++;
   Serial.print(F("Memory size in bytes 0x"));
-  temp = (((pointer[0] << 2) & 0xff00) + (*(++pointer)) & 0xff);
+  temp = (((pointer[0] << 8) & 0xff00) + (*(++pointer)) & 0xff);
   Serial.print(temp, HEX);
   Serial.print(" = ");
   Serial.println(temp, DEC);
@@ -469,7 +469,7 @@ void nfcGadget::explainNDEF() {
   }
   Serial.println();
 
-  uint8_t MSB = (_ndef[0] << 2) & 0x00FF;
+  uint8_t MSB = (_ndef[0] << 8) & 0x00FF;
   uint8_t LSB = _ndef[1] & 0xFF;
   if ((MSB + LSB) == fileLength) {
     Serial.println(F("Length header is correct !"));
@@ -554,7 +554,7 @@ void nfcGadget::explainNDEF() {
 
   for (int i = 0; i < payloadL; i++) {
     cursor++;
-    payloadSize = ((payloadSize << 2) + (*cursor));
+    payloadSize = ((payloadSize << 8) + (*cursor));
   }
 
   Serial.print("Payload is ");
@@ -578,7 +578,7 @@ void nfcGadget::explainNDEF() {
     Serial.println(int(cursor - _ndef));
     */
 
-    while(int(cursor - _ndef)<=fileLength)
+    while((int(cursor - _ndef))<fileLength)
     {
     cursor++;
     payloadL = *cursor;
@@ -586,7 +586,7 @@ void nfcGadget::explainNDEF() {
 
     for (int i = 0; i < payloadL; i++) {
       cursor++;
-      payloadSize = ((payloadSize << 2) + (*cursor));
+      payloadSize = ((payloadSize << 8) + (*cursor));
     }
     Serial.print("Payload is ");
     Serial.print(payloadSize, DEC);
