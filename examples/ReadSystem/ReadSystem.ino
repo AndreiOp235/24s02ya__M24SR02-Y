@@ -1,3 +1,12 @@
+/*
+This example demonstrates how to interact with an NFC (Near Field Communication) tag, specifically focusing on reading the System file stored in the NFC tag. The System file usually contains device-specific information such as memory size, configuration details, and more. This example shows how to:
+
+Initialize communication with the NFC tag via I2C.
+Select and read the System file from the NFC tag.
+Print the contents of the System file to the Serial Monitor for further inspection.
+This example can be adapted to handle other types of files on the NFC tag or to extend functionality for writing data to the tag.
+*/
+
 #include <Wire.h>
 #include "24s02ya__M24SR02.h"
 
