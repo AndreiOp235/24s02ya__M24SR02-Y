@@ -2,7 +2,7 @@
 #define _24s02ya__M24SR02
 
 #include <Arduino.h>
-#include <crc16.h>
+#include "crc16.h"
 
 #define CMD_GETI2CSESSION 0x26
 #define CMD_KILLRFSESSION 0x52

@@ -1,7 +1,7 @@
 #include "24s02ya__M24SR02.h"
 #include <Wire.h>
-#include <crc16.h>
-//#include "nopuri.h"
+#include "crc16.h"
+
 void (*resetFunc)(void) = 0;
 const char asel[] = { 0x02, 0x00, 0xA4, 0x04, 0x00, 0x07, 0xD2, 0x76, 0x00, 0x00, 0x85, 0x01, 0x01, 0x00, 0x35, 0xC0 };  //select app
 char adate[] = { 0x03, 0x00, 0xA4, 0x00, 0x0C, 0x02, 0xE1, 0x01, 0xD2, 0xAF };                                           //select file
@@ -138,33 +138,47 @@ int nfcGadget::readFileLength() {
 }
 
 char* nfcGadget::readFile() {
-  if (_opt == 1)
-    adate2[0] = 0x02;
-  else if (_opt == 3)
-    adate2[0] = 0x03;
-  else if (_opt == 2)
-    adate2[0] = 0x02;
-  else {
-    Serial.println("_opt has been altered");
-    return 0;
+  // Set adate2[0] based on _opt value, with default error handling
+  switch (_opt) {
+    case 1:
+    case 2:
+      adate2[0] = 0x02;
+      break;
+    case 3:
+      adate2[0] = 0x03;
+      break;
+    default:
+      Serial.println(F("_opt has been altered"));
+      return nullptr; // Use nullptr instead of 0 for better type safety
   }
 
+  // Check if fileLength exceeds the threshold to decide on longRead or direct read
   if (fileLength > 25) {
     longRead();
   } else {
-    adate2[5] = fileLength;  //Le aka number of bytes to read
-    _data = (char*)realloc(_data, 7 * sizeof(char));
+    // Allocate or reallocate memory for _data and handle memory allocation
+    char* newData = (char*)realloc(_data, 7 * sizeof(char));
+    if (!newData) {
+      Serial.println(F("Memory reallocation failed"));
+      return nullptr;
+    }
+    _data = newData;
+
+    // Set up adate2[5] for the number of bytes to read
+    adate2[5] = fileLength;
+
+    // Copy adate2 to _data and perform the command sequence
     memcpy(_data, adate2, 6);
     sendCommand(6);
     receiveResponse(fileLength + 5);
     interpretAnswer(fileLength + 5);
   }
 
-  return 0;
+  return _data; // Return the pointer to the data read
 }
 
+
 char* nfcGadget::longRead() {
-  // Initialize temporary variables
   uint8_t temp = fileLength; // Copy the total file length to temp
   int offset = -20;          // Initialize offset (not used in the current code)
   adate2[5] = 20;            // Set initial read length to 20 bytes
@@ -172,11 +186,14 @@ char* nfcGadget::longRead() {
   // Loop to read the file in chunks of 20 bytes
   while (temp > 20) {
     // Allocate memory for _data and check if the allocation was successful
-    _data = (char*)realloc(_data, 7 * sizeof(char));
-    if (_data == nullptr) {
-      // Handle memory allocation failure (could add error handling here)
-      return nullptr;
+    char* newData = (char*)realloc(_data, 7 * sizeof(char));
+    if (newData == nullptr) {
+      // Memory allocation failed, handle the error
+      Serial.println(F("Memory allocation failed during chunk read."));
+      free(_data); // Free previously allocated memory to avoid memory leaks
+      return nullptr; // Return nullptr to indicate failure
     }
+    _data = newData; // Update _data with the newly allocated memory
 
     // Prepare command data to read the next chunk of 20 bytes
     memcpy(_data, adate2, 6);
@@ -192,11 +209,14 @@ char* nfcGadget::longRead() {
 
   // Handle the final chunk of data that is less than or equal to 20 bytes
   adate2[5] = temp;                   // Set the final read length to the remaining bytes
-  _data = (char*)realloc(_data, 7 * sizeof(char)); // Reallocate memory for the final chunk
-  if (_data == nullptr) {
-    // Handle memory allocation failure (could add error handling here)
-    return nullptr;
+  char* finalData = (char*)realloc(_data, 7 * sizeof(char)); // Reallocate memory for the final chunk
+  if (finalData == nullptr) {
+    // Memory allocation failed, handle the error
+    Serial.println(F("Memory allocation failed during final read."));
+    free(_data); // Free previously allocated memory to avoid memory leaks
+    return nullptr; // Return nullptr to indicate failure
   }
+  _data = finalData; // Update _data with the newly allocated memory
 
   // Prepare and send the final command to read the remaining bytes
   memcpy(_data, adate2, 6);
@@ -205,35 +225,51 @@ char* nfcGadget::longRead() {
   longAdd(temp);                    // Add the remaining bytes to the long data buffer
   interpretAnswer(temp + 5);        // Interpret the final response status
 
-  // Return the pointer to the data (assuming it's used elsewhere)
-  return 0; // Should be returning a pointer to the data, so consider returning `_data` instead
+  // Return the pointer to the data buffer
+  return _data; // Return the pointer to the data buffer
 }
+
 
 
 void nfcGadget::longAdd(int temp) {
   // Check if the _ndef pointer is null (i.e., not allocated yet)
   if (!_ndef) {
+    // Allocate memory for _ndef and check if allocation was successful
     _ndef = malloc(temp * sizeof(uint8_t));
     if (!_ndef) {
-      Serial.println("Insuficient memory !!!");
+      Serial.println(F("Insufficient memory !!!"));
       // Optional: If the RESET macro is defined and device is not connected, reset the device
 #ifdef RESET
-      if (!this->deviceConnected())
+      if (!this->deviceConnected()) {
         resetFunc();
+      }
 #endif
-      return;
+      return; // Exit function if memory allocation failed
     } else {
       // If memory allocation was successful, copy data from _response to _ndef
-      // _response + 1 is the starting point of data to copy
       memcpy(_ndef, (_response + 1), temp);
     }
-  }
+  } else {
+    // Allocate new memory for _ndef with additional space and check if allocation was successful
+    uint8_t* newNdef = (uint8_t*)realloc(_ndef, (adate2[4] + temp) * sizeof(uint8_t));
+    if (!newNdef) {
+      Serial.println(F("Memory reallocation failed !!!"));
+      // Optional: If the RESET macro is defined and device is not connected, reset the device
+#ifdef RESET
+      if (!this->deviceConnected()) {
+        resetFunc();
+      }
+#endif
+      return; // Exit function if memory reallocation failed
+    }
+    // Update _ndef with the newly allocated memory
+    _ndef = newNdef;
 
-  else {
-    realloc(_ndef, (adate2[4] + temp) * sizeof(uint8_t));
+    // Copy data from _response to the newly allocated space in _ndef
     memcpy((_ndef + adate2[4]), (_response + 1), temp);
   }
 }
+
 
 
 nfcGadget::nfcGadget() {
