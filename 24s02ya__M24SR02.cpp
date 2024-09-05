@@ -2,34 +2,52 @@
 #include <Wire.h>
 #include <crc16.h>
 //#include "nopuri.h"
-void(* resetFunc) (void) = 0;
-char asel[] = { 0x02, 0x00, 0xA4, 0x04, 0x00, 0x07, 0xD2, 0x76, 0x00, 0x00, 0x85, 0x01, 0x01, 0x00, 0x35, 0xC0 };  //select app
-char adate[] = { 0x03, 0x00, 0xA4, 0x00, 0x0C, 0x02, 0xE1, 0x01, 0xD2, 0xAF };                                     //select file
-char adate1[] = { 0x02, 0x00, 0xB0, 0x00, 0x00, 0x02, 0x6B, 0x7D };                                                //read CC length
+void (*resetFunc)(void) = 0;
+const char asel[] = { 0x02, 0x00, 0xA4, 0x04, 0x00, 0x07, 0xD2, 0x76, 0x00, 0x00, 0x85, 0x01, 0x01, 0x00, 0x35, 0xC0 };  //select app
+char adate[] = { 0x03, 0x00, 0xA4, 0x00, 0x0C, 0x02, 0xE1, 0x01, 0xD2, 0xAF };                                           //select file
+char adate1[] = { 0x02, 0x00, 0xB0, 0x00, 0x00, 0x02, 0x6B, 0x7D };                                                      //read CC length
 char adate2[] = { 0x03, 0x00, 0xB0, 0x00, 0x00, 0x17, 0xA5, 0xA2 };
 
 void nfcGadget::selectNFCapp() {
-  if (_verbose)
+  if (_verbose) {
     Serial.println("Select NFC T4 application");
+  }
 
-  _data=(char*)realloc(_data,15*sizeof(char));
+  // Resize buffer to ensure it can hold the required data
+  _data = (char*)realloc(_data, 15 * sizeof(char));
+
+  // Check for successful memory reallocation
+  if (_data == nullptr) {
+    Serial.println("Memory reallocation failed");
+#ifdef RESET
+    if (!this->deviceConnected())
+      resetFunc();
+#endif
+#ifndef RESET
+    return;
+#endif
+  }
+
+  // Safely copy the data
   memcpy(_data, asel, 14);
+
+  // Send command and receive response
   sendCommand(14);
   receiveResponse(5);
   interpretAnswer(5);
 }
 
-bool nfcGadget::interpretAnswer(int expectedLength) {
-  uint8_t Sw1 = _response[expectedLength - 4] & 0xFF;
-  uint8_t Sw2 = _response[expectedLength - 3] & 0xFF;
 
+bool nfcGadget::interpretAnswer(int expectedLength) {
+  // Extract status words from the response
+  uint8_t Sw1 = _response[expectedLength - 4];
+  uint8_t Sw2 = _response[expectedLength - 3];
+
+  // Verbose output for debugging
   if (_verbose) {
     switch (Sw1) {
       case 0x62:
-        if (Sw2 == 0x80)
-          Serial.println(F("File overflow (Le error)"));
-        else
-          Serial.println(F("End of file or record reached before reading Le bytes"));
+        Serial.println(Sw2 == 0x80 ? F("File overflow (Le error)") : F("End of file or record reached before reading Le bytes"));
         break;
       case 0x90:
         Serial.println(F("Command completed successfully"));
@@ -40,55 +58,74 @@ bool nfcGadget::interpretAnswer(int expectedLength) {
     }
   }
 
-  if (Sw1 == 0x90)
-    return true;
-  else
-    return false;
+  // Return true if status word indicates success, false otherwise
+  return Sw1 == 0x90;
 }
+
 
 void nfcGadget::selectFile(int opt) {
   _opt = opt;
+
+  // Set adate values based on file type
   switch (opt) {
-    case 1:
-      {
-        adate[6] = 0x00;
-        adate[7] = 0x01;
-      }
+    case NDEFfile:
+      adate[6] = 0x00;
+      adate[7] = 0x01;
       break;
 
-    case 2:
-      {
-        adate[6] = 0xE1;
-        adate[7] = 0x01;
-      }
+    case Systemfile:
+      adate[6] = 0xE1;
+      adate[7] = 0x01;
       break;
 
-    case 3:
-      {
-        adate[6] = 0xE1;
-        adate[7] = 0x03;
-      }
+    case CCfile:
+      adate[6] = 0xE1;
+      adate[7] = 0x03;
       break;
+
     default:
-      Serial.println("UNKNOWN file !!!");
-      break;
+      Serial.println(F("UNKNOWN file !!!"));
+      return;  // Exit function early on unknown file
   }
-_data=(char*)realloc(_data,9*sizeof(char));
+
+  // Reallocate _data and check for success
+  _data = (char*)realloc(_data, 9 * sizeof(char));
+  
+  if (_data == NULL) {
+    Serial.println(F("Memory allocation failed!"));
+    return;  // Exit function early on allocation failure
+  }
+  
+  // Copy adate content to _data
   memcpy(_data, adate, 8);
+
+  // Send command, receive response, and interpret answer
   sendCommand(8);
   receiveResponse(5);
   interpretAnswer(5);
 }
 
+
 int nfcGadget::readFileLength() {
-  if (_opt == 1)
+  if (_opt == 1 || _opt==2)
     adate1[0] = 0x02;
   else if (_opt == 3)
     adate1[0] = 0x03;
-_data=(char*)realloc(_data,7*sizeof(char));
+  // Reallocate memory for _data
+  _data = (char*)realloc(_data, 7 * sizeof(char));
+  if (_data == NULL) {
+    Serial.println(F("Memory allocation failed!"));
+    return -1; // Return an error value if realloc fails
+  }
+
+  // Copy adate1 to _data
   memcpy(_data, adate1, 6);
+
+  // Send command, receive response, and interpret answer
   sendCommand(6);
   receiveResponse(7);
+
+  // Interpret response and calculate file length
   if (interpretAnswer(7)) {
     uint8_t MSB = _response[1] & 0xFF;
     uint8_t LSB = _response[2] & 0xFF;
@@ -96,6 +133,8 @@ _data=(char*)realloc(_data,7*sizeof(char));
     fileLength = ((MSB << 8) & 0xFF00) + LSB;
     return fileLength;
   }
+
+  return -1; // Return an error value if the answer is not interpreted successfully
 }
 
 char* nfcGadget::readFile() {
@@ -114,7 +153,7 @@ char* nfcGadget::readFile() {
     longRead();
   } else {
     adate2[5] = fileLength;  //Le aka number of bytes to read
-    _data=(char*)realloc(_data,7*sizeof(char));
+    _data = (char*)realloc(_data, 7 * sizeof(char));
     memcpy(_data, adate2, 6);
     sendCommand(6);
     receiveResponse(fileLength + 5);
@@ -130,7 +169,7 @@ char* nfcGadget::longRead() {
   adate2[5] = 20;
 
   while (temp > 20) {
-    _data=(char*)realloc(_data,7*sizeof(char));
+    _data = (char*)realloc(_data, 7 * sizeof(char));
     memcpy(_data, adate2, 6);
     sendCommand(6);
     receiveResponse(20 + 5);
@@ -141,7 +180,7 @@ char* nfcGadget::longRead() {
     adate2[4] += 20;
   }
   adate2[5] = temp;
-  _data=(char*)realloc(_data,7*sizeof(char));
+  _data = (char*)realloc(_data, 7 * sizeof(char));
   memcpy(_data, adate2, 6);
   sendCommand(6);
   receiveResponse(temp + 5);
@@ -165,32 +204,33 @@ void nfcGadget::longAdd(int temp) {
       memcpy(_ndef, (_response + 1), temp);
     }
   } else {
-    realloc(_ndef, (adate2[4] + temp)*sizeof(uint8_t));
+    realloc(_ndef, (adate2[4] + temp) * sizeof(uint8_t));
     memcpy((_ndef + adate2[4]), (_response + 1), temp);
   }
 }
 
 
 nfcGadget::nfcGadget() {
-  _data=malloc(2*sizeof(char));
+
+  _data = malloc(2 * sizeof(char)); //added to make sure it`s never blank
 #ifdef RESET
-  if (!this->deviceConnected())
+  if (!this->deviceConnected())  //hard reset of uC
     resetFunc();
 #endif
 }
 
 nfcGadget::~nfcGadget() {
-  if (_response) {   // Check if _response is not null
+  if (_response) {  // Check if _response is not null
     free(_response);
     _response = nullptr;  // Set to nullptr to avoid dangling pointer
   }
-  
-  if (_ndef) {       // If _ndef was dynamically allocated, free it
+
+  if (_ndef) {  // If _ndef was dynamically allocated, free it
     free(_ndef);
     _ndef = nullptr;  // Prevent dangling pointer
   }
 
-  if (_data) {       // If _ndef was dynamically allocated, free it
+  if (_data) {  // If _ndef was dynamically allocated, free it
     free(_data);
     _data = nullptr;  // Prevent dangling pointer
   }
@@ -201,10 +241,10 @@ bool nfcGadget::deviceConnected() {
 
   Wire.beginTransmission(0x2D);  // Start I2C transmission to a device with given address
   if (!Wire.endTransmission())
-    Wire.beginTransmission(0x56); // send a init byte
+    Wire.beginTransmission(0x56);  // send a init byte
   if (!Wire.endTransmission())
     return true;
-  return false; // Device is not connected if there was an error
+  return false;  // Device is not connected if there was an error
 }
 
 void nfcGadget::explainFile() {
@@ -596,38 +636,37 @@ void nfcGadget::explainNDEF() {
     Serial.println(int(cursor - _ndef));
     */
 
-    while((int(cursor - _ndef))<fileLength)
-    {
-    cursor++;
-    payloadL = *cursor;
-    payloadSize = 0;
-
-    for (int i = 0; i < payloadL; i++) {
+    while ((int(cursor - _ndef)) < fileLength) {
       cursor++;
-      payloadSize = ((payloadSize << 8) + (*cursor));
+      payloadL = *cursor;
+      payloadSize = 0;
+
+      for (int i = 0; i < payloadL; i++) {
+        cursor++;
+        payloadSize = ((payloadSize << 8) + (*cursor));
+      }
+      Serial.print("Payload is ");
+      Serial.print(payloadSize, DEC);
+      Serial.println(" Bytes long");
+
+      Serial.print(cursor[-2], HEX);
+
+      if (cursor[-2] == 0x54) {
+        Serial.println(F(" The payload is a TEXT"));
+        handleTXT(cursor, payloadSize);
+      } else if (cursor[-2] == 0x55) {
+        Serial.println(F("The payload is a URI"));
+        handleURI(cursor, payloadSize);
+      }
+
+      cursor += payloadSize;
+
+      Serial.println("DEMON");
+      Serial.println(uint8_t(cursor - _ndef));
+
+      Serial.println("HELP");
+      Serial.println(*cursor, HEX);
     }
-    Serial.print("Payload is ");
-    Serial.print(payloadSize, DEC);
-    Serial.println(" Bytes long");
-
-    Serial.print(cursor[-2], HEX);
-
-    if (cursor[-2] == 0x54) {
-      Serial.println(F(" The payload is a TEXT"));
-      handleTXT(cursor, payloadSize);
-    } else if (cursor[-2] == 0x55) {
-      Serial.println(F("The payload is a URI"));
-      handleURI(cursor, payloadSize);
-    }
-
-    cursor += payloadSize ;
-
-    Serial.println("DEMON");
-    Serial.println(uint8_t(cursor - _ndef));
-
-    Serial.println("HELP");
-    Serial.println(*cursor, HEX);
-  }
   }
 }
 

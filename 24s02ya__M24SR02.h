@@ -15,7 +15,7 @@
 #define Systemfile 2
 #define CCfile 3 
 
-extern char asel[];
+extern const char asel[];
 extern char adate[];
 extern char adate1[];
 extern char adate2[];
@@ -38,8 +38,8 @@ public:
 
   void longAdd(int temp);
 
-  boolean _verbose;
-  boolean _cmds;
+  boolean _verbose=false;
+  boolean _cmds=false;
   char* _data;
   uint8_t _deviceaddress = 0x56;
   boolean _sendGetI2cSession = true;
