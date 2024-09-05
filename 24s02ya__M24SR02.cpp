@@ -492,7 +492,6 @@ void nfcGadget::explainSystem() {
   PRINT_HEX_DEC("Memory size in bytes: ", temp);
 
     // Product code
-
   pointer++;
   Serial.print(F("Product code 0x"));
   Serial.println((*pointer) & 0xff, HEX);
@@ -512,7 +511,8 @@ void nfcGadget::explainNDEF() {
   if ((MSB + LSB) == fileLength) {
     Serial.println(F("Length header is correct !"));
   } else {
-    asm volatile("nop");  // Insert NOP instruction here
+    Serial.println(F("Length header is not correct ! EXIT"));
+    return;  // Insert NOP instruction here
   }
   cursor++;
   cursor++;
@@ -668,25 +668,28 @@ void nfcGadget::handleTXT(uint8_t* cursor, uint8_t lungime) {
 
 void nfcGadget::handleURI(uint8_t* cursor, uint8_t lungime) {
   cursor++;
-  if (*cursor == 0x01) {
-    Serial.print(F("http://www."));
-  } else if (*cursor == 0x02) {
-    Serial.print(F("https://www."));
-  } else if (*cursor == 0x03) {
-    Serial.print(F("http://"));
-  } else if (*cursor == 0x04) {
-    Serial.print(F("https://"));
-  } else {
-    Serial.print(F(""));
+  // Array of URI prefixes
+  const char* uriPrefixes[] = {
+    "",              // 0x00 - No prefix
+    "http://www.",   // 0x01
+    "https://www.",  // 0x02
+    "http://",       // 0x03
+    "https://"       // 0x04
+  };
+
+  // Get the prefix index from the cursor
+  uint8_t prefixIndex = *cursor;
+  
+  // Check for valid prefix index
+  if (prefixIndex >= 0x01 && prefixIndex <= 0x04) {
+    Serial.print(uriPrefixes[prefixIndex]);
   }
-
-
-  for (int i = 1; i < lungime; i++) {
-    Serial.print(char(cursor[i]));
-  }
-
-  Serial.println("");
+  
+  // Print the rest of the URI
+  Serial.write(cursor + 1, lungime - 1);
+  Serial.println(); // New line after URI
 }
+
 
 void nfcGadget::sendCommand(unsigned len) {
   uint8_t v;
