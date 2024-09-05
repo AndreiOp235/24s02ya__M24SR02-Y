@@ -14,8 +14,9 @@ void setup() {
   Serial.println("");
   Serial.println("interfata NFC");
 
-  nfc._verbose = true;
-  nfc._cmds = true;
+
+  nfc._verbose = false;
+  nfc._cmds = false;
   nfc._sendGetI2cSession = true;
   Serial.println("Open ");
   nfc.selectNFCapp(); //not mandatory

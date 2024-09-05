@@ -333,17 +333,23 @@ void nfcGadget::explainFile() {
 
 
 void nfcGadget::explainCC() {
+  // Set a pointer to the start of the response data, skipping the initial byte
   char* pointer = _response + 1;
+  
+  // Extract and print the number of bytes in the CC file
   Serial.print(F("Number of bytes in CC file 0x"));
-  int temp = (((pointer[0] << 8) & 0xff00) + *(++pointer));
-  Serial.print(temp, HEX);
+  int temp = (((pointer[0] << 8) & 0xff00) + *(++pointer)); // Combine high and low bytes
+  Serial.print(temp, HEX); // Print in hexadecimal format
   Serial.print(" = ");
-  Serial.println(temp, DEC);
+  Serial.println(temp, DEC); // Print in decimal format
 
+  // Move to the next byte and extract the mapping version
   pointer++;
   Serial.print(F("Mapping version 0x"));
   Serial.print(*pointer, HEX);
   Serial.print(" = V");
+  
+  // Print the mapping version based on the value
   switch (*pointer & 0xFF) {
     case 0x10:
       Serial.println("1.0");
@@ -356,70 +362,82 @@ void nfcGadget::explainCC() {
       break;
   }
 
+  // Move to the next byte and extract the maximum number of bytes that can be read
   pointer++;
   Serial.print(F("Maximum number of bytes that can be read 0x"));
-  temp = (((pointer[0] << 8) & 0xff00) + (*(++pointer)) & 0xff);
+  temp = (((pointer[0] << 8) & 0xff00) + (*(++pointer)) & 0xff); // Combine high and low bytes
   Serial.print(temp, HEX);
   Serial.print(" = ");
-  Serial.println(temp, DEC);
+  Serial.println(temp, DEC); // Print in decimal format
 
+  // Move to the next byte and extract the maximum number of bytes that can be written
   pointer++;
   Serial.print(F("Maximum number of bytes that can be written 0x"));
-  temp = (((pointer[0] << 8) & 0xff00) + (*(++pointer)) & 0xff);
+  temp = (((pointer[0] << 8) & 0xff00) + (*(++pointer)) & 0xff); // Combine high and low bytes
   Serial.print(temp, HEX);
   Serial.print(" = ");
-  Serial.println(temp, DEC);
+  Serial.println(temp, DEC); // Print in decimal format
 
+  // Move to the next byte and extract the NDEF file control TLV
   Serial.println(F("NDEF file control TLV"));
   pointer++;
+  
+  // Extract and print the T field from the NDEF file control TLV
   Serial.print(F("T field 0x"));
   Serial.println(*pointer, HEX);
 
+  // Move to the next byte and extract the L field from the NDEF file control TLV
   pointer++;
   Serial.print(F("L field 0x"));
   Serial.println(*pointer, HEX);
 
+  // Move to the next byte and extract the FileID
   pointer++;
   Serial.print(F("FileID 0x"));
-  temp = (((pointer[0] << 8) & 0xff00) + (*(++pointer)) & 0xff);
+  temp = (((pointer[0] << 8) & 0xff00) + (*(++pointer)) & 0xff); // Combine high and low bytes
   Serial.println(temp, HEX);
 
+  // Move to the next byte and extract the maximum NDEF file size
   pointer++;
   Serial.print(F("Maximum NDEF file size in bytes 0x"));
-  temp = (((pointer[0] << 8) & 0xff00) + (*(++pointer)) & 0xff);
+  temp = (((pointer[0] << 8) & 0xff00) + (*(++pointer)) & 0xff); // Combine high and low bytes
   Serial.print(temp, HEX);
   Serial.print(" = ");
-  Serial.println(temp, DEC);
+  Serial.println(temp, DEC); // Print in decimal format
 
+  // Move to the next byte and extract the read access permissions
   pointer++;
-  Serial.print(F("Read acces 0x"));
+  Serial.print(F("Read access 0x"));
   Serial.print(*pointer & 0xFF, HEX);
-
+  
+  // Print the read access permissions based on the value
   switch (*pointer & 0xFF) {
     case 0x00:
       Serial.println(F(" (Read access without any security)"));
       break;
     case 0x80:
-      Serial.println(F(" (Locked )"));
+      Serial.println(F(" (Locked)"));
       break;
     case 0xFE:
-      Serial.println(F(" (Read not authorized  )"));
+      Serial.println(F(" (Read not authorized)"));
       break;
     default:
       Serial.println(F(" (UNKNOWN)"));
       break;
   }
 
+  // Move to the next byte and extract the write access permissions
   pointer++;
-  Serial.print(F("Write acces 0x"));
+  Serial.print(F("Write access 0x"));
   Serial.print(*pointer & 0xFF, HEX);
-
+  
+  // Print the write access permissions based on the value
   switch (*pointer & 0xFF) {
     case 0x00:
       Serial.println(F(" (Write access without any security)"));
       break;
     case 0x80:
-      Serial.println(F(" (Locked )"));
+      Serial.println(F(" (Locked)"));
       break;
     case 0xFF:
       Serial.println(F(" (Write not authorized)"));
@@ -429,6 +447,7 @@ void nfcGadget::explainCC() {
       break;
   }
 }
+
 
 void nfcGadget::explainSystem() {
   char* pointer = _response + 1;
@@ -560,25 +579,35 @@ void nfcGadget::explainSystem() {
 }
 
 void nfcGadget::explainNDEF() {
+  // Initialize cursor to point to the start of the NDEF data
   uint8_t* cursor = _ndef;
+  
+  // Flags to identify specific fields in the NDEF message
   bool MB = 0, ME = 0, SR = 0, IL = 0;
+
+  // Print the NDEF data in hexadecimal format
   for (int i = 0; i < fileLength; i++) {
     Serial.print(_ndef[i], HEX);
     Serial.print(" ");
   }
   Serial.println();
 
+  // Extract and check the length header (MSB and LSB)
   uint8_t MSB = (_ndef[0] << 8) & 0x00FF;
   uint8_t LSB = _ndef[1] & 0xFF;
+  
+  // Verify if the length header matches the file length
   if ((MSB + LSB) == fileLength) {
     Serial.println(F("Length header is correct !"));
   } else {
     Serial.println(F("Length header is not correct ! EXIT"));
-    return;  // Insert NOP instruction here
+    return;  // Exit if the length header is incorrect
   }
-  cursor++;
-  cursor++;
 
+  // Move cursor to the first NDEF field
+  cursor += 2;
+
+  // Check and report Message Begin (MB) flag
   if (cursor[0] & 0b10000000) {
     Serial.println(F("Message Begin is set !"));
     MB = true;
@@ -586,6 +615,7 @@ void nfcGadget::explainNDEF() {
     Serial.println(F("Message Begin is not set !"));
   }
 
+  // Check and report Message End (ME) flag
   if (cursor[0] & 0b01000000) {
     Serial.println(F("Message End is set !"));
     ME = true;
@@ -593,12 +623,14 @@ void nfcGadget::explainNDEF() {
     Serial.println(F("Message End is not set !"));
   }
 
+  // Check and report Chunk Flag (CF) status
   if (cursor[0] & 0b00100000) {
     Serial.println(F("Chunk Flag is set (payload isn't complete) !"));
   } else {
     Serial.println(F("Chunk Flag is not set !"));
   }
 
+  // Check and report Short Record (SR) flag
   if (cursor[0] & 0b00010000) {
     Serial.println(F("Short Record is set !"));
     SR = true;
@@ -606,18 +638,20 @@ void nfcGadget::explainNDEF() {
     Serial.println(F("Short Record is not set !"));
   }
 
-  if (cursor[0] & 0b00001000) {  // Fixed typo in the bit mask (it should be 0b00001000)
+  // Check and report ID Length (IL) presence
+  if (cursor[0] & 0b00001000) {  
     Serial.println(F("ID Length present is set !"));
     IL = 1;
   } else {
     Serial.println(F("ID Length present is not set !"));
   }
 
+  // Print Type Name Format (TNF) value and its description
   Serial.print(F("Type Name Format is 0x"));
-  Serial.print(cursor[0] & 0b00000111, HEX);  // Fixed typo in the bit mask (it should be 0b00000111)
+  Serial.print(cursor[0] & 0b00000111, HEX);
 
-  switch (cursor[0] & 0b00000111)  // Fixed typo in the bit mask
-  {
+  // Interpret the Type Name Format value
+  switch (cursor[0] & 0b00000111) {
     case 0x00:
       Serial.println(F(" Empty"));
       break;
@@ -644,11 +678,12 @@ void nfcGadget::explainNDEF() {
       break;
   }
 
-
+  // Move to the next byte for the Type Length
   cursor++;
   Serial.print("Type has a length of 0x");
   Serial.println(*cursor, HEX);
 
+  // Extract and calculate the payload length
   uint8_t payloadL = *cursor;
   int payloadSize = 0;
 
@@ -657,12 +692,13 @@ void nfcGadget::explainNDEF() {
     payloadSize = ((payloadSize << 8) + (*cursor));
   }
 
+  // Print the payload size
   Serial.print("Payload is ");
   Serial.print(payloadSize, DEC);
   Serial.println(" Bytes long");
   cursor++;
 
-
+  // Check the payload type and handle accordingly
   if (*cursor == 0x54) {
     Serial.println(F(" The payload is a TEXT"));
     handleTXT(cursor, payloadSize);
@@ -670,15 +706,18 @@ void nfcGadget::explainNDEF() {
     Serial.println(F("The payload is a URI"));
     handleURI(cursor, payloadSize);
   }
+  
+  // Move cursor past the current payload
   cursor += payloadSize + 1;
 
+  // If Message End (ME) flag is not set, process additional records
   if (!ME) {
-
     while ((int(cursor - _ndef)) < fileLength) {
       cursor++;
       payloadL = *cursor;
       payloadSize = 0;
 
+      // Calculate payload size for subsequent records
       for (int i = 0; i < payloadL; i++) {
         cursor++;
         payloadSize = ((payloadSize << 8) + (*cursor));
@@ -687,8 +726,7 @@ void nfcGadget::explainNDEF() {
       Serial.print(payloadSize, DEC);
       Serial.println(" Bytes long");
 
-      //Serial.print(cursor[-2], HEX);
-
+      // Handle subsequent payloads based on type
       if (cursor[-2] == 0x54) {
         Serial.println(F("The payload is a TEXT"));
         handleTXT(cursor, payloadSize);
@@ -698,10 +736,11 @@ void nfcGadget::explainNDEF() {
       }
 
       Serial.println(" ");
-      cursor += payloadSize;
+      cursor += payloadSize; // Move cursor past the current payload
     }
   }
 }
+
 
 void nfcGadget::handleTXT(uint8_t* cursor, uint8_t lungime) {
   cursor++;
@@ -749,77 +788,100 @@ void nfcGadget::handleURI(uint8_t* cursor, uint8_t lungime) {
 void nfcGadget::sendCommand(unsigned len) {
   uint8_t v;
 
+  // If the I2C session needs to be established, initiate the transmission
   if (_sendGetI2cSession) {
-    Wire.beginTransmission(_deviceaddress);  // transmit to device 0x2D
-    Wire.write(byte(CMD_GETI2CSESSION));     // GetI2Csession
-    _err = Wire.endTransmission();           // stop transmitting
+    // Begin I2C transmission to the device with address _deviceaddress
+    Wire.beginTransmission(_deviceaddress);
+    // Send the command to get the I2C session
+    Wire.write(byte(CMD_GETI2CSESSION));
+    // End the transmission and store the error status
+    _err = Wire.endTransmission();
     /*
+    Uncomment if verbose debugging is enabled:
     if (_verbose) {
       Serial.print(F("\nGetI2Csession: "));
       Serial.print(_err, HEX);
     } else
-      delay(1);*/
+      delay(1);
+    */
   }
 
-  if (_cmds)
+  // If debugging commands (_cmds) is enabled, print a start message
+  if (_cmds) {
     Serial.print(F("\r\n=> "));
-  else
-    delay(1);
+  } else {
+    delay(1);  // Short delay for non-debug mode
+  }
 
+  // Begin I2C transmission to the device again for sending commands
   Wire.beginTransmission(_deviceaddress);
 
+  // Iterate over the data to be sent
   for (int i = 0; i < len; i++) {
+    // Extract the byte to send
     v = (_data[i] & 0xff);
     if (_cmds) {
-      if (v < 0x10)
+      // Print the byte in hexadecimal format, padded with leading zero if necessary
+      if (v < 0x10) {
         Serial.print(F("0"));
+      }
       Serial.print(v, HEX);
-    } else
-      delay(5);
+    } else {
+      delay(5);  // Short delay for non-debug mode
+    }
+    // Send the byte over I2C
     Wire.write(byte(v & 0xff));
-    if (_cmds)
+    if (_cmds) {
       Serial.print(F(" "));
-    else
-      delay(1);
+    } else {
+      delay(1);  // Short delay for non-debug mode
+    }
   }
 
-  //5.5 CRC of the I2C and RF frame ISO/IEC 13239. The initial register content shall be 0x6363
+  // Calculate the CRC checksum for the I2C frame
   int chksum = crcsum((unsigned char*)_data, len, 0x6363);
 
+  // Send the checksum as the last bytes of the command
   v = chksum & 0xff;
   if (_cmds) {
+    // Print the low byte of the checksum in hexadecimal format
     if (v < 0x10) {
       Serial.print(F("0"));
     }
     Serial.print(v, HEX);
-  } else
-    delay(1);
-
+  } else {
+    delay(1);  // Short delay for non-debug mode
+  }
   Wire.write(byte(v & 0xff));
 
-  //EOD field
+  // Send the high byte of the checksum
   v = (chksum >> 8) & 0xff;
   if (_cmds) {
+    // Print the high byte of the checksum in hexadecimal format
     if (v < 0x10) {
       Serial.print(F("0"));
     }
     Serial.print(v, HEX);
-  } else
-    delay(1);
+  } else {
+    delay(1);  // Short delay for non-debug mode
+  }
   Wire.write(byte(v & 0xff));
 
+  // End the I2C transmission
   _err = Wire.endTransmission();
   if (_cmds) {
     Serial.print(F("\r\n"));
   } else {
-    delay(1);
+    delay(1);  // Short delay for non-debug mode
   }
 
+  // Print an error message if the transmission failed
   if (_err != 0) {
     Serial.print(F("write err: "));
     Serial.print(_err, HEX);
   }
 }
+
 
 int nfcGadget::receiveResponse(unsigned int len) {
   int index = 0;

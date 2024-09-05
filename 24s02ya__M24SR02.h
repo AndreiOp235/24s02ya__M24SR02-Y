@@ -22,6 +22,7 @@ extern char adate2[];
 
 class nfcGadget {
 public:
+  
   ~nfcGadget();
   nfcGadget();
   static bool deviceConnected();
