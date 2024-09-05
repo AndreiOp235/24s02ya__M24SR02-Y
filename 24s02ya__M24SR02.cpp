@@ -90,12 +90,12 @@ void nfcGadget::selectFile(int opt) {
 
   // Reallocate _data and check for success
   _data = (char*)realloc(_data, 9 * sizeof(char));
-  
+
   if (_data == NULL) {
     Serial.println(F("Memory allocation failed!"));
     return;  // Exit function early on allocation failure
   }
-  
+
   // Copy adate content to _data
   memcpy(_data, adate, 8);
 
@@ -107,7 +107,7 @@ void nfcGadget::selectFile(int opt) {
 
 
 int nfcGadget::readFileLength() {
-  if (_opt == 1 || _opt==2)
+  if (_opt == 1 || _opt == 2)
     adate1[0] = 0x02;
   else if (_opt == 3)
     adate1[0] = 0x03;
@@ -115,7 +115,7 @@ int nfcGadget::readFileLength() {
   _data = (char*)realloc(_data, 7 * sizeof(char));
   if (_data == NULL) {
     Serial.println(F("Memory allocation failed!"));
-    return -1; // Return an error value if realloc fails
+    return -1;  // Return an error value if realloc fails
   }
 
   // Copy adate1 to _data
@@ -134,7 +134,7 @@ int nfcGadget::readFileLength() {
     return fileLength;
   }
 
-  return -1; // Return an error value if the answer is not interpreted successfully
+  return -1;  // Return an error value if the answer is not interpreted successfully
 }
 
 char* nfcGadget::readFile() {
@@ -212,7 +212,7 @@ void nfcGadget::longAdd(int temp) {
 
 nfcGadget::nfcGadget() {
 
-  _data = malloc(2 * sizeof(char)); //added to make sure it`s never blank
+  _data = malloc(2 * sizeof(char));  //added to make sure it`s never blank
 #ifdef RESET
   if (!this->deviceConnected())  //hard reset of uC
     resetFunc();
@@ -370,12 +370,20 @@ void nfcGadget::explainCC() {
 
 void nfcGadget::explainSystem() {
   char* pointer = _response + 1;
-  Serial.print(F("Length system file 0x"));
-  int temp = (((pointer[0] << 8) & 0xff00) + *(++pointer));
-  Serial.print(temp, HEX);
-  Serial.print(" = ");
-  Serial.println(temp, DEC);
 
+// Helper macro for printing hex and decimal values
+#define PRINT_HEX_DEC(label, value) \
+  Serial.print(F(label)); \
+  Serial.print(F("0x")); \
+  Serial.print(value, HEX); \
+  Serial.print(F(" = ")); \
+  Serial.println(value, DEC)
+
+  // Length system file
+  int temp = (((pointer[0] << 8) & 0xff00) + *(++pointer));
+  PRINT_HEX_DEC("Length system file: ", temp);
+
+  // I2C protection
   pointer++;
   Serial.print(F("I2C protection 0x"));
   Serial.print(*pointer, HEX);
@@ -391,89 +399,59 @@ void nfcGadget::explainSystem() {
       break;
   }
 
+  // I2C Watchdog
   pointer++;
   Serial.print(F("I2C Watchdog 0x"));
   Serial.print(*pointer, HEX);
   if (*pointer == 0) {
     Serial.println(F(": watchdog disabled"));
   } else {
-    Serial.print(" - watchdog waits for ms: ");
+    Serial.print(F(" - watchdog waits for ms: "));
     Serial.print(((*pointer) & 0x03) * 30);
   }
 
+  // GPO Status
   pointer++;
   Serial.print(F("GPO Status 0x"));
   Serial.println(*pointer & 0xFF, HEX);
   Serial.println(F("Given a RF session:"));
-  uint8_t MSB = (*pointer) & 0b01110000;
+  uint8_t MSB = ((*pointer) & 0b01110000) >> 4;
 
+  Serial.print(F("RF Session: "));
   switch (MSB) {
-    case 0b000:  // 0 in binary
-      Serial.println(F("High impedance"));
-      break;
-    case 0b001:  // 1 in binary
-      Serial.println(F("Session opened"));
-      break;
-    case 0b010:  // 2 in binary
-      Serial.println(F("WIP"));
-      break;
-    case 0b011:  // 3 in binary
-      Serial.println(F("MIP"));
-      break;
-    case 0b100:  // 4 in binary
-      Serial.println(F("Interrupt"));
-      break;
-    case 0b101:  // 5 in binary
-      Serial.println(F("State control"));
-      break;
-    case 0b110:  // 6 in binary
-      Serial.println(F("RF busy"));
-      break;
-    case 0b111:  // 7 in binary
-      Serial.println(F("RFU"));
-      break;
-    default:
-      Serial.println(F("Unknown state"));
-      break;
+    case 0b000: Serial.println(F("High impedance")); break;
+    case 0b001: Serial.println(F("Session opened")); break;
+    case 0b010: Serial.println(F("WIP")); break;
+    case 0b011: Serial.println(F("MIP")); break;
+    case 0b100: Serial.println(F("Interrupt")); break;
+    case 0b101: Serial.println(F("State control")); break;
+    case 0b110: Serial.println(F("RF busy")); break;
+    case 0b111: Serial.println(F("RFU")); break;
+    default: Serial.println(F("Unknown state")); break;
   }
 
   Serial.println(F("Given a I2C session:"));
   uint8_t LSB = (*pointer) & 0b00000111;
 
+  Serial.print(F("I2C Session: "));
   switch (LSB) {
-    case 0b000:  // 0 in binary
-      Serial.println(F("High impedance"));
-      break;
-    case 0b001:  // 1 in binary
-      Serial.println(F("Session opened"));
-      break;
-    case 0b010:  // 2 in binary
-      Serial.println(F("WIP"));
-      break;
-    case 0b011:  // 3 in binary
-      Serial.println(F("MIP"));
-      break;
-    case 0b100:  // 4 in binary
-      Serial.println(F("Interrupt"));
-      break;
-    case 0b101:  // 5 in binary
-      Serial.println(F("State control"));
-      break;
-    case 0b110:  // 6 in binary
-      Serial.println(F("RF busy"));
-      break;
-    case 0b111:  // 7 in binary
-      Serial.println(F("RFU"));
-      break;
-    default:
-      Serial.println(F("Unknown state"));
-      break;
+    case 0b000: Serial.println(F("High impedance")); break;
+    case 0b001: Serial.println(F("Session opened")); break;
+    case 0b010: Serial.println(F("WIP")); break;
+    case 0b011: Serial.println(F("MIP")); break;
+    case 0b100: Serial.println(F("Interrupt")); break;
+    case 0b101: Serial.println(F("State control")); break;
+    case 0b110: Serial.println(F("RF busy")); break;
+    case 0b111: Serial.println(F("RFU")); break;
+    default: Serial.println(F("Unknown state")); break;
   }
 
+  // ST reserved
   pointer++;
   Serial.print(F("ST reserved 0x"));
   Serial.println(*pointer, HEX);
 
+  // RF enable
   pointer++;
   Serial.print(F("RF enable 0x"));
   Serial.println(*pointer, HEX);
@@ -493,10 +471,12 @@ void nfcGadget::explainSystem() {
     Serial.println(F(" the M24SR02-Y does not decode the command received from the RF interface"));
   }
 
+  // NDEF file number (RFU)
   pointer++;
   Serial.print(F("NDEF file number (RFU) 0x"));
   Serial.println(*pointer, HEX);
 
+  //UID
   Serial.print(F("UID 0x"));
   for (int i = 0; i < 7; i++) {
     pointer++;
@@ -506,12 +486,12 @@ void nfcGadget::explainSystem() {
 
   Serial.println("");
 
+  // Memory size
   pointer++;
-  Serial.print(F("Memory size in bytes 0x"));
-  temp = (((pointer[0] << 8) & 0xff00) + (*(++pointer)) & 0xff);
-  Serial.print(temp, HEX);
-  Serial.print(" = ");
-  Serial.println(temp, DEC);
+  temp = (((pointer[0] << 8) & 0xff00) + *(++pointer)) & 0xff;
+  PRINT_HEX_DEC("Memory size in bytes: ", temp);
+
+    // Product code
 
   pointer++;
   Serial.print(F("Product code 0x"));
