@@ -164,46 +164,72 @@ char* nfcGadget::readFile() {
 }
 
 char* nfcGadget::longRead() {
-  uint8_t temp = fileLength;
-  int offset = -20;
-  adate2[5] = 20;
+  // Initialize temporary variables
+  uint8_t temp = fileLength; // Copy the total file length to temp
+  int offset = -20;          // Initialize offset (not used in the current code)
+  adate2[5] = 20;            // Set initial read length to 20 bytes
 
+  // Loop to read the file in chunks of 20 bytes
   while (temp > 20) {
+    // Allocate memory for _data and check if the allocation was successful
     _data = (char*)realloc(_data, 7 * sizeof(char));
+    if (_data == nullptr) {
+      // Handle memory allocation failure (could add error handling here)
+      return nullptr;
+    }
+
+    // Prepare command data to read the next chunk of 20 bytes
     memcpy(_data, adate2, 6);
-    sendCommand(6);
-    receiveResponse(20 + 5);
-    interpretAnswer(20 + 5);
+    sendCommand(6);                   // Send the command to read data
+    receiveResponse(20 + 5);          // Receive the response (20 bytes of data + 5 bytes of status)
+    interpretAnswer(20 + 5);          // Interpret the response status
 
-    temp -= 20;
-    longAdd(20);
-    adate2[4] += 20;
+    // Update the remaining file length and data pointer for the next chunk
+    temp -= 20;                        // Decrease remaining length by 20 bytes
+    longAdd(20);                       // Add the 20-byte chunk to the long data buffer
+    adate2[4] += 20;                  // Update the offset in adate2 for the next read
   }
-  adate2[5] = temp;
-  _data = (char*)realloc(_data, 7 * sizeof(char));
+
+  // Handle the final chunk of data that is less than or equal to 20 bytes
+  adate2[5] = temp;                   // Set the final read length to the remaining bytes
+  _data = (char*)realloc(_data, 7 * sizeof(char)); // Reallocate memory for the final chunk
+  if (_data == nullptr) {
+    // Handle memory allocation failure (could add error handling here)
+    return nullptr;
+  }
+
+  // Prepare and send the final command to read the remaining bytes
   memcpy(_data, adate2, 6);
-  sendCommand(6);
-  receiveResponse(temp + 5);
-  longAdd(temp);
-  interpretAnswer(temp + 5);
+  sendCommand(6);                   // Send the command to read the final chunk
+  receiveResponse(temp + 5);        // Receive the final chunk response (remaining bytes + 5 bytes of status)
+  longAdd(temp);                    // Add the remaining bytes to the long data buffer
+  interpretAnswer(temp + 5);        // Interpret the final response status
 
-
-  return 0;
+  // Return the pointer to the data (assuming it's used elsewhere)
+  return 0; // Should be returning a pointer to the data, so consider returning `_data` instead
 }
 
+
 void nfcGadget::longAdd(int temp) {
+  // Check if the _ndef pointer is null (i.e., not allocated yet)
   if (!_ndef) {
     _ndef = malloc(temp * sizeof(uint8_t));
     if (!_ndef) {
       Serial.println("Insuficient memory !!!");
+      // Optional: If the RESET macro is defined and device is not connected, reset the device
 #ifdef RESET
       if (!this->deviceConnected())
         resetFunc();
 #endif
+      return;
     } else {
+      // If memory allocation was successful, copy data from _response to _ndef
+      // _response + 1 is the starting point of data to copy
       memcpy(_ndef, (_response + 1), temp);
     }
-  } else {
+  }
+
+  else {
     realloc(_ndef, (adate2[4] + temp) * sizeof(uint8_t));
     memcpy((_ndef + adate2[4]), (_response + 1), temp);
   }
@@ -491,7 +517,7 @@ void nfcGadget::explainSystem() {
   temp = (((pointer[0] << 8) & 0xff00) + *(++pointer)) & 0xff;
   PRINT_HEX_DEC("Memory size in bytes: ", temp);
 
-    // Product code
+  // Product code
   pointer++;
   Serial.print(F("Product code 0x"));
   Serial.println((*pointer) & 0xff, HEX);
@@ -611,10 +637,6 @@ void nfcGadget::explainNDEF() {
   cursor += payloadSize + 1;
 
   if (!ME) {
-    /*
-    Serial.println("DEMON");
-    Serial.println(int(cursor - _ndef));
-    */
 
     while ((int(cursor - _ndef)) < fileLength) {
       cursor++;
@@ -629,29 +651,26 @@ void nfcGadget::explainNDEF() {
       Serial.print(payloadSize, DEC);
       Serial.println(" Bytes long");
 
-      Serial.print(cursor[-2], HEX);
+      //Serial.print(cursor[-2], HEX);
 
       if (cursor[-2] == 0x54) {
-        Serial.println(F(" The payload is a TEXT"));
+        Serial.println(F("The payload is a TEXT"));
         handleTXT(cursor, payloadSize);
       } else if (cursor[-2] == 0x55) {
         Serial.println(F("The payload is a URI"));
         handleURI(cursor, payloadSize);
       }
 
+      Serial.println(" ");
       cursor += payloadSize;
-
-      Serial.println("DEMON");
-      Serial.println(uint8_t(cursor - _ndef));
-
-      Serial.println("HELP");
-      Serial.println(*cursor, HEX);
     }
   }
 }
 
 void nfcGadget::handleTXT(uint8_t* cursor, uint8_t lungime) {
   cursor++;
+
+  // Print encoding type
   if (*cursor == 0x01) {
     Serial.println(F("utf-8 encoding"));
   } else {
@@ -679,15 +698,15 @@ void nfcGadget::handleURI(uint8_t* cursor, uint8_t lungime) {
 
   // Get the prefix index from the cursor
   uint8_t prefixIndex = *cursor;
-  
+
   // Check for valid prefix index
   if (prefixIndex >= 0x01 && prefixIndex <= 0x04) {
     Serial.print(uriPrefixes[prefixIndex]);
   }
-  
+
   // Print the rest of the URI
   Serial.write(cursor + 1, lungime - 1);
-  Serial.println(); // New line after URI
+  Serial.println();  // New line after URI
 }
 
 
