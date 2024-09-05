@@ -3,9 +3,6 @@
 
 nfcGadget nfc;
 
-
-//Serial.println(crcsum(sel, 14, 0x6363), HEX); serial checker
-
 void setup() {
   Wire.begin();  //required for device check
   Serial.begin(9600);
@@ -23,32 +20,10 @@ void setup() {
 
   Serial.println("CC file");
   nfc.selectFile(CCfile);
-  int j=nfc.readFileLength();
-
-  nfc.readFile();
+  int j=nfc.readFileLength(); //size of payload, it must be called !!!
+  char *c=nfc.readFile(); //read data
   nfc.explainFile();
   Serial.println("");
-
-    nfc.selectNFCapp(); //not mandatory
-
-  Serial.println("ST file");
-  nfc.selectFile(Systemfile);
-  j=nfc.readFileLength();
-
-  nfc.readFile();
-  nfc.explainFile();
-  Serial.println("");
-
-    nfc.selectNFCapp(); //not mandatory
-
-  Serial.println("NDEF file");
-  nfc.selectFile(NDEFfile);
-  j=nfc.readFileLength();
-
-  nfc.readFile();
-  nfc.explainFile();
-  Serial.println("");
-
 }
 
 
