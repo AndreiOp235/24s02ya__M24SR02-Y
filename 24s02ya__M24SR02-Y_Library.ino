@@ -32,7 +32,7 @@ void setup() {
 
   Serial.println("ST file");
   nfc.selectFile(Systemfile);
-  int j=nfc.readFileLength();
+  j=nfc.readFileLength();
 
   nfc.readFile();
   nfc.explainFile();
@@ -42,7 +42,7 @@ void setup() {
 
   Serial.println("NDEF file");
   nfc.selectFile(NDEFfile);
-  int j=nfc.readFileLength();
+  j=nfc.readFileLength();
 
   nfc.readFile();
   nfc.explainFile();

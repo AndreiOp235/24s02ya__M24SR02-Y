@@ -12,6 +12,7 @@ void nfcGadget::selectNFCapp() {
   if (_verbose)
     Serial.println("Select NFC T4 application");
 
+  _data=(char*)realloc(_data,15*sizeof(char));
   memcpy(_data, asel, 14);
   sendCommand(14);
   receiveResponse(5);
@@ -72,7 +73,7 @@ void nfcGadget::selectFile(int opt) {
       Serial.println("UNKNOWN file !!!");
       break;
   }
-
+_data=(char*)realloc(_data,9*sizeof(char));
   memcpy(_data, adate, 8);
   sendCommand(8);
   receiveResponse(5);
@@ -84,7 +85,7 @@ int nfcGadget::readFileLength() {
     adate1[0] = 0x02;
   else if (_opt == 3)
     adate1[0] = 0x03;
-
+_data=(char*)realloc(_data,7*sizeof(char));
   memcpy(_data, adate1, 6);
   sendCommand(6);
   receiveResponse(7);
@@ -113,7 +114,7 @@ char* nfcGadget::readFile() {
     longRead();
   } else {
     adate2[5] = fileLength;  //Le aka number of bytes to read
-
+    _data=(char*)realloc(_data,7*sizeof(char));
     memcpy(_data, adate2, 6);
     sendCommand(6);
     receiveResponse(fileLength + 5);
@@ -129,6 +130,7 @@ char* nfcGadget::longRead() {
   adate2[5] = 20;
 
   while (temp > 20) {
+    _data=(char*)realloc(_data,7*sizeof(char));
     memcpy(_data, adate2, 6);
     sendCommand(6);
     receiveResponse(20 + 5);
@@ -139,6 +141,7 @@ char* nfcGadget::longRead() {
     adate2[4] += 20;
   }
   adate2[5] = temp;
+  _data=(char*)realloc(_data,7*sizeof(char));
   memcpy(_data, adate2, 6);
   sendCommand(6);
   receiveResponse(temp + 5);
@@ -162,13 +165,14 @@ void nfcGadget::longAdd(int temp) {
       memcpy(_ndef, (_response + 1), temp);
     }
   } else {
-    realloc(_ndef, (adate2[4] + temp));
+    realloc(_ndef, (adate2[4] + temp)*sizeof(uint8_t));
     memcpy((_ndef + adate2[4]), (_response + 1), temp);
   }
 }
 
 
 nfcGadget::nfcGadget() {
+  _data=malloc(2*sizeof(char));
 #ifdef RESET
   if (!this->deviceConnected())
     resetFunc();
@@ -176,19 +180,31 @@ nfcGadget::nfcGadget() {
 }
 
 nfcGadget::~nfcGadget() {
-  if (_responseLength) {
+  if (_response) {   // Check if _response is not null
     free(_response);
+    _response = nullptr;  // Set to nullptr to avoid dangling pointer
+  }
+  
+  if (_ndef) {       // If _ndef was dynamically allocated, free it
+    free(_ndef);
+    _ndef = nullptr;  // Prevent dangling pointer
+  }
+
+  if (_data) {       // If _ndef was dynamically allocated, free it
+    free(_data);
+    _data = nullptr;  // Prevent dangling pointer
   }
 }
+
 
 bool nfcGadget::deviceConnected() {
 
   Wire.beginTransmission(0x2D);  // Start I2C transmission to a device with given address
   if (!Wire.endTransmission())
-    Wire.beginTransmission(0x56);
+    Wire.beginTransmission(0x56); // send a init byte
   if (!Wire.endTransmission())
     return true;
-  return false;
+  return false; // Device is not connected if there was an error
 }
 
 void nfcGadget::explainFile() {
@@ -205,12 +221,14 @@ void nfcGadget::explainFile() {
     default:
       Serial.println("opt has been altered !!!");
 #ifdef RESET
-      if (!this->deviceConnected())
+      if (!deviceConnected()) {
         resetFunc();
+      }
 #endif
       break;
   }
 }
+
 
 void nfcGadget::explainCC() {
   char* pointer = _response + 1;

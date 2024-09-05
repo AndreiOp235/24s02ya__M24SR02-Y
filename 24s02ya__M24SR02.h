@@ -40,7 +40,7 @@ public:
 
   boolean _verbose;
   boolean _cmds;
-  char _data[100];
+  char* _data;
   uint8_t _deviceaddress = 0x56;
   boolean _sendGetI2cSession = true;
   uint8_t _err;
