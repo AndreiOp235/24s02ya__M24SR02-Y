@@ -17,7 +17,7 @@ The **24s02ya__M24SR02-Y Library** is an Arduino library designed to interact wi
 1. **Download the Library**: Clone or download the repository from GitHub.
 
    ```bash
-   git clone https://github.com/your-username/24s02ya__M24SR02-Y.git
+   git clone https://github.com/AndreiOp235/24s02ya__M24SR02-Y.git
    ```
 
 2. **Install via Arduino Library Manager**:
