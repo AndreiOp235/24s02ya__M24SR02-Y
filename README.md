@@ -17,7 +17,7 @@ The **24s02ya__M24SR02-Y Library** is an Arduino library designed to interact wi
 1. **Download the Library**: Clone or download the repository from GitHub.
 
    ```bash
-   git clone https://github.com/your-username/24s02ya__M24SR02-Y_Library.git
+   git clone https://github.com/your-username/24s02ya__M24SR02-Y.git
    ```
 
 2. **Install via Arduino Library Manager**:
@@ -31,7 +31,7 @@ The **24s02ya__M24SR02-Y Library** is an Arduino library designed to interact wi
 
 ## Usage
 
-Here's a basic example demonstrating how to use the `24s02ya__M24SR02-Y_Library` to interact with the M24SR02-Y device.
+Here's a basic example demonstrating how to use the `24s02ya__M24SR02-Y` library to interact with the M24SR02-Y device.
 
 ### Example: Reading NFC Files
 
