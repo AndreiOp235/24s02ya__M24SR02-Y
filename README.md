@@ -57,7 +57,7 @@ Here's a basic example demonstrating how to use the `24s02ya__M24SR02-Y` library
 This library is released into the public domain under the GNU General Public License v2.0 Feel free to use, modify, and distribute it.
 Credit goes to  https://github.com/rena2019 for his library that was a good starting place for the basic I2C comunication with the IC. All the subquentle wrappers are written by me.
 
-Also this includes a crc16 lib found on some random archieve that I cannot find the author of
+Also this includes a crc16 lib found on some random archieve that I cannot find the author of.
 
 ## Support
 
