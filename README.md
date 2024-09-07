@@ -10,7 +10,7 @@ The **24s02ya__M24SR02-Y Library** is an Arduino library designed to interact wi
 - **Select NFC Application**: Choose the NFC application for communication.
 - **Select and Read Files**: Access different files (CC file, System file, NDEF file) on the NFC device.
 - **Interpret and Explain Data**: Decode and explain NFC data, including payload and file structure.
-- **Verbose and Command Modes**: Options for detailed output and command visibility.
+- **Verbose and Command Modes**: Options for detailed output and command visibility. 
 
 ## Installation
 
