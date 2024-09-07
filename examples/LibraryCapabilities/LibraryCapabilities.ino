@@ -3,7 +3,7 @@
   This code demonstrates how to read the Capability Container (CC), System, and NDEF files from an NFC tag.
   
   Created by Andrei Valeriu Cosa, 05.09.2024
-  Based on the NFC communication library "24s02ya__M24SR02".
+  Based on the NFC communication library "24s02ya__M24SR02-Y".
   Released into the public domain.
 
   This example shows how to:
@@ -16,7 +16,7 @@
 */
 
 #include <Wire.h>                 // Include the Wire library for I2C communication
-#include "24s02ya__M24SR02.h"      // Include the custom NFC library
+#include "24s02ya__M24SR02-Y.h"      // Include the custom NFC library
 
 nfcGadget nfc;  // Create an instance of the nfcGadget class to interact with the NFC tag
 

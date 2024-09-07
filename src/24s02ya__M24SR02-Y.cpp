@@ -1,4 +1,4 @@
-#include "24s02ya__M24SR02.h"
+#include "24s02ya__M24SR02-Y.h"
 #include <Wire.h>
 #include "crc16.h"
 

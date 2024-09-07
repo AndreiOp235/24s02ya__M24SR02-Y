@@ -15,7 +15,7 @@
 */
 
 #include <Wire.h>             // Include the Wire library for I2C communication
-#include "24s02ya__M24SR02.h" // Include the custom NFC library
+#include "24s02ya__M24SR02-Y.h" // Include the custom NFC library
 
 nfcGadget nfc;                // Create an instance of the nfcGadget class
 

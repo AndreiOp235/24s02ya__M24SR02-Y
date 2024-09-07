@@ -8,7 +8,7 @@ This example can be adapted to handle other types of files on the NFC tag or to 
 */
 
 #include <Wire.h>
-#include "24s02ya__M24SR02.h"
+#include "24s02ya__M24SR02-Y.h"
 
 nfcGadget nfc;
 

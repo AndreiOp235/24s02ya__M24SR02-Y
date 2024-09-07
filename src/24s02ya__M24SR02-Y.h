@@ -5,8 +5,8 @@
   Released into the public domain.
 */
 
-#ifndef _24s02ya__M24SR02
-#define _24s02ya__M24SR02
+#ifndef _24s02ya__M24SR02-Y
+#define _24s02ya__M24SR02-Y
 
 #include <Arduino.h>
 #include "crc16.h"
